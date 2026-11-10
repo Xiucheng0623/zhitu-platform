@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>FORGE · 品牌基础规范</title>
+<style>
+  :root{
+    --ink:#14161A; --paper:#FAF9F7; --line:#E4E0D9; --soft:#EFECE7;
+    --copper:#B4652E; --copper-l:#D08A57; --copper-100:#F4E3D2; --copper-50:#FBF3EA;
+    --graphite:#333941; --mute:#767C85; --mute2:#9AA0A8;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:"Inter","Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;padding:44px 52px 72px}
+  .hdr{display:flex;align-items:flex-end;justify-content:space-between;border-bottom:1px solid var(--line);padding-bottom:18px;margin-bottom:30px}
+  .hdr h1{font-size:19px;font-weight:600;letter-spacing:-.01em;margin:0}
+  .hdr .meta{font-size:11px;color:var(--mute2);font-family:"Cascadia Mono",Consolas,monospace}
+  h2{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);font-weight:600;margin:34px 0 14px}
+  h2:first-of-type{margin-top:0}
+  .box{border:1px solid var(--line);border-radius:6px;background:#fff}
+  .flex{display:flex;gap:16px}
+  .g2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+
+  /* lockup */
+  .lockup-stage{padding:44px;display:grid;place-items:center}
+  .lockup-stage--dark{background:#14161A;border-color:#22262C}
+  .lk{display:flex;align-items:center;gap:15px}
+  .lk__word{font-size:34px;font-weight:600;letter-spacing:.13em;line-height:.9;color:var(--ink)}
+  .lk__word--rev{color:#FAF9F7}
+  .lk__kick{font-size:8.5px;letter-spacing:.26em;color:var(--mute2);margin-top:8px;font-weight:500}
+  .lk__kick--rev{color:#6B7280}
+
+  /* sizes */
+  .sizes{display:flex;align-items:flex-end;gap:34px;padding:30px 34px}
+  .size{display:flex;flex-direction:column;align-items:center;gap:9px}
+  .size span{font-size:10px;color:var(--mute2);font-family:"Cascadia Mono",Consolas,monospace}
+  .mono-cell{padding:22px;display:grid;place-items:center;background:#fff}
+  .mono-cell--dark{background:#14161A}
+
+  /* colors */
+  .colorgrid{display:grid;grid-template-columns:repeat(6,1fr);gap:10px}
+  .sw{border:1px solid var(--line);border-radius:4px;overflow:hidden;background:#fff}
+  .sw__chip{height:62px}
+  .sw__meta{padding:8px 9px}
+  .sw__name{font-size:11px;font-weight:500}
+  .sw__hex{font-size:9.5px;color:var(--mute2);font-family:"Cascadia Mono",Consolas,monospace;margin-top:2px}
+
+  /* corner language */
+  .corners{display:flex;gap:12px;padding:24px}
+  .corner-demo{flex:1;height:88px;border:1px solid var(--soft);border-radius:4px;position:relative;background:#fff}
+  .corner-demo .lab{position:absolute;left:8px;bottom:6px;font-size:9.5px;color:var(--mute2)}
+
+  /* applications */
+  .apps{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  .app{background:#fff;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+  .app__cap{padding:8px 12px;font-size:10.5px;color:var(--mute);border-top:1px solid var(--soft)}
+  .browserbar{height:26px;background:#F4F2EE;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:5px;padding:0 9px}
+  .browserbar i{width:7px;height:7px;border-radius:99px;background:#D2CDC4;display:block}
+  .sidebar{background:#14161A;padding:12px 14px;display:flex;align-items:center;gap:9px}
+  .sidebar .w{color:#FAF9F7;font-size:13px;font-weight:600;letter-spacing:.12em;line-height:1}
+  .sidebar .k{color:#6B7280;font-size:6.5px;letter-spacing:.22em;margin-top:3px}
+  .cover{background:#14161A;padding:26px 24px;min-height:150px;position:relative;overflow:hidden}
+  .cover__grid{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.03) 1px,transparent 1px);background-size:26px 26px}
+  .cover__t{position:relative;color:#FAF9F7;font-size:13px;font-weight:600;margin-top:20px;letter-spacing:-.01em}
+  .cover__s{position:relative;color:#8B929C;font-size:9px;margin-top:5px;line-height:1.6}
+  .empty{padding:30px 20px;display:flex;flex-direction:column;align-items:center;gap:10px;background:#fff}
+  .empty__t{font-size:11.5px;color:#4B5057;font-weight:500}
+  .empty__s{font-size:9.5px;color:var(--mute2)}
+
+  .rules{font-size:11.5px;color:#4B5057;line-height:1.9;columns:2;column-gap:40px}
+  .rules b{color:var(--ink)}
+  .yes{color:#2C7857;font-weight:600}
+  .no{color:#A8432C;font-weight:600}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <h1>FORGE · 品牌基础规范</h1>
+  <div class="meta">v1.0 · 2026-11-05 · 符号：采样框 / 负形字母 F</div>
+</div>
+
+<h2>01 · 主标识（横版 lockup）</h2>
+<div class="g2">
+  <div class="box lockup-stage">
+    <div class="lk">
+      <svg width="52" height="52" viewBox="0 0 64 64">
+        <g fill="none" stroke="#14161A" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M8 20V9.6h10.4"/><path d="M56 20V9.6H45.6"/><path d="M8 44v10.4h10.4"/><path d="M56 44v10.4H45.6"/>
+        </g>
+        <g fill="none" stroke="#B4652E" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M24 46V21h19"/><path d="M24 33h12"/>
+        </g>
+      </svg>
+      <div><div class="lk__word">FORGE</div><div class="lk__kick">AI DATA OPERATIONS</div></div>
+    </div>
+  </div>
+  <div class="box lockup-stage lockup-stage--dark">
+    <div class="lk">
+      <svg width="52" height="52" viewBox="0 0 64 64">
+        <g fill="none" stroke="#FAF9F7" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M8 20V9.6h10.4"/><path d="M56 20V9.6H45.6"/><path d="M8 44v10.4h10.4"/><path d="M56 44v10.4H45.6"/>
+        </g>
+        <g fill="none" stroke="#D08A57" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M24 46V21h19"/><path d="M24 33h12"/>
+        </g>
+      </svg>
+      <div><div class="lk__word lk__word--rev">FORGE</div><div class="lk__kick lk__kick--rev">AI DATA OPERATIONS</div></div>
+    </div>
+  </div>
+</div>
+
+<h2>02 · 图形标与尺寸阶梯</h2>
+<div class="flex">
+  <div class="box" style="flex:1">
+    <div class="sizes">
+      <div class="size">
+        <svg width="56" height="56" viewBox="0 0 64 64"><g fill="none" stroke="#14161A" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 20V9.6h10.4"/><path d="M56 20V9.6H45.6"/><path d="M8 44v10.4h10.4"/><path d="M56 44v10.4H45.6"/></g><g fill="none" stroke="#B4652E" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round"><path d="M24 46V21h19"/><path d="M24 33h12"/></g></svg>
+        <span>56</span>
+      </div>
+      <div class="size">
+        <svg width="32" height="32" viewBox="0 0 64 64"><g fill="none" stroke="#14161A" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 20V9.6h10.4"/><path d="M56 20V9.6H45.6"/><path d="M8 44v10.4h10.4"/><path d="M56 44v10.4H45.6"/></g><g fill="none" stroke="#B4652E" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round"><path d="M24 46V21h19"/><path d="M24 33h12"/></g></svg>
+        <span>32</span>
+      </div>
+      <div class="size">
+        <svg width="24" height="24" viewBox="0 0 64 64"><g fill="none" stroke="#14161A" stroke-width="4.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 20V9.6h10.4"/><path d="M56 20V9.6H45.6"/><path d="M8 44v10.4h10.4"/><path d="M56 44v10.4H45.6"/></g><g fill="none" stroke="#B4652E" stroke-width="4.8" stroke-linecap="round" stroke-linejoin="round"><path d="M24 46V21h19"/><path d="M24 33h12"/></g></svg>
+        <span>24</span>
+      </div>
+      <div class="size">
+        <svg width="16" height="16" viewBox="0 0 64 64"><g fill="none" stroke="#14161A" stroke-width="6.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 22V10h12"/><path d="M56 22V10H44"/><path d="M8 42v12h12"/><path d="M56 42v12H44"/></g><g fill="none" stroke="#B4652E" stroke-width="6.2" stroke-linecap="round" stroke-linejoin="round"><path d="M24 47V20h18"/></g></svg>
+        <span>16</span>
+      </div>
+      <div class="size">
+        <svg width="32" height="32" viewBox="0 0 64 64"><g fill="none" stroke="#14161A" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 20V9.6h10.4"/><path d="M56 20V9.6H45.6"/><path d="M8 44v10.4h10.4"/><path d="M56 44v10.4H45.6"/></g><g fill="none" stroke="#14161A" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round"><path d="M24 46V21h19"/><path d="M24 33h12"/></g></svg>
+        <span>单色</span>
+      </div>
+    </div>
+  </div>
+  <div class="box" style="width:172px">
+    <div class="mono-cell mono-cell--dark" style="height:100%">
+      <svg width="40" height="40" viewBox="0 0 64 64"><g fill="none" stroke="#FAF9F7" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 20V9.6h10.4"/><path d="M56 20V9.6H45.6"/><path d="M8 44v10.4h10.4"/><path d="M56 44v10.4H45.6"/></g><g fill="none" stroke="#D08A57" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round"><path d="M24 46V21h19"/><path d="M24 33h12"/></g></svg>
+    </div>
+  </div>
+</div>
+
+<h2>03 · 色彩</h2>
+<div class="colorgrid">
+  <div class="sw"><div class="sw__chip" style="background:#14161A"></div><div class="sw__meta"><div class="sw__name">Graphite</div><div class="sw__hex">#14161A</div></div></div>
+  <div class="sw"><div class="sw__chip" style="background:#333941"></div><div class="sw__meta"><div class="sw__name">Graphite 700</div><div class="sw__hex">#333941</div></div></div>
+  <div class="sw"><div class="sw__chip" style="background:#B4652E"></div><div class="sw__meta"><div class="sw__name">Copper</div><div class="sw__hex">#B4652E</div></div></div>
+  <div class="sw"><div class="sw__chip" style="background:#D08A57"></div><div class="sw__meta"><div class="sw__name">Copper 400</div><div class="sw__hex">#D08A57</div></div></div>
+  <div class="sw"><div class="sw__chip" style="background:#FBF3EA"></div><div class="sw__meta"><div class="sw__name">Copper 50</div><div class="sw__hex">#FBF3EA</div></div></div>
+  <div class="sw"><div class="sw__chip" style="background:#FAF9F7;border-bottom:1px solid #EFECE7"></div><div class="sw__meta"><div class="sw__name">Canvas</div><div class="sw__hex">#FAF9F7</div></div></div>
+</div>
+
+<h2>04 · 图形语言（角标）</h2>
+<div class="box corners">
+  <div class="corner-demo">
+    <svg width="100%" height="100%" viewBox="0 0 200 88" preserveAspectRatio="none"><g fill="none" stroke="#B4652E" stroke-width="1.6" stroke-linecap="round"><path d="M16 34V16h18"/><path d="M184 34V16h-18"/><path d="M16 54v18h18"/><path d="M184 54v18h-18"/></g></svg>
+    <span class="lab">选择区域 / 数据批次</span>
+  </div>
+  <div class="corner-demo">
+    <svg width="100%" height="100%" viewBox="0 0 200 88" preserveAspectRatio="none"><g fill="none" stroke="#A8432C" stroke-width="1.6" stroke-linecap="round" stroke-dasharray="3 3"><path d="M16 34V16h18"/><path d="M184 34V16h-18"/><path d="M16 54v18h18"/><path d="M184 54v18h-18"/></g></svg>
+    <span class="lab">异常 / 返工区域</span>
+  </div>
+  <div class="corner-demo">
+    <svg width="100%" height="100%" viewBox="0 0 200 88" preserveAspectRatio="none"><g fill="none" stroke="#9AA0A8" stroke-width="1.2" stroke-linecap="round"><path d="M14 18V14h4"/><path d="M186 18V14h-4"/><path d="M14 70v4h4"/><path d="M186 70v4h-4"/></g></svg>
+    <span class="lab">待处理 / 占位</span>
+  </div>
+</div>
+
+<h2>05 · 应用</h2>
+<div class="apps">
+  <div class="app">
+    <div class="browserbar"><i></i><i></i><i></i></div>
+    <div style="padding:22px;display:flex;align-items:center;gap:10px;background:#fff">
+      <div style="width:32px;height:32px;border-radius:5px;background:#14161A;display:grid;place-items:center">
+        <svg width="19" height="19" viewBox="0 0 64 64"><g fill="none" stroke="#FAF9F7" stroke-width="5.6" stroke-linecap="round"><path d="M8 20V9.6h10.4"/><path d="M56 20V9.6H45.6"/><path d="M8 44v10.4h10.4"/><path d="M56 44v10.4H45.6"/></g><g fill="none" stroke="#D08A57" stroke-width="5.6" stroke-linecap="round"><path d="M24 46V21h19"/><path d="M24 33h12"/></g></svg>
+      </div>
+      <div style="font-size:11px;color:#767C85">标签页图标 / favicon</div>
+    </div>
+    <div class="app__cap">32px 应用图标 + 16px favicon</div>
+  </div>
+
+  <div class="app">
+    <div class="sidebar">
+      <svg width="22" height="22" viewBox="0 0 64 64"><g fill="none" stroke="#FAF9F7" stroke-width="4.6" stroke-linecap="round"><path d="M8 20V9.6h10.4"/><path d="M56 20V9.6H45.6"/><path d="M8 44v10.4h10.4"/><path d="M56 44v10.4H45.6"/></g><g fill="none" stroke="#D08A57" stroke-width="4.6" stroke-linecap="round"><path d="M24 46V21h19"/><path d="M24 33h12"/></g></svg>
+      <div><div class="w">FORGE</div><div class="k">AI DATA OPERATIONS</div></div>
+    </div>
+    <div style="padding:14px 14px 16px;background:#14161A">
+      <div style="height:7px;width:64%;background:rgba(255,255,255,.08);border-radius:2px"></div>
+      <div style="height:7px;width:48%;background:rgba(255,255,255,.06);border-radius:2px;margin-top:7px"></div>
+      <div style="height:7px;width:56%;background:rgba(255,255,255,.06);border-radius:2px;margin-top:7px"></div>
+    </div>
+    <div class="app__cap">产品侧栏（深色常驻）</div>
+  </div>
+
+  <div class="app">
+    <div class="empty">
+      <svg width="30" height="30" viewBox="0 0 64 64" opacity=".5"><g fill="none" stroke="#9AA0A8" stroke-width="3" stroke-linecap="round"><path d="M10 21V11h10"/><path d="M54 21V11H44"/><path d="M10 43v10h10"/><path d="M54 43v10H44"/></g></svg>
+      <div class="empty__t">该批次暂无标注结果</div>
+      <div class="empty__s">导入数据后，标注员可在工作台开始标注</div>
+    </div>
+    <div class="app__cap">空状态（角标降为 50% 灰）</div>
+  </div>
+</div>
+
+<h2>06 · 使用规则</h2>
+<div class="rules">
+  <p><b>清空区</b>：以符号外接正方形边长为 X，四周留白不得小于 0.25X；与文字排版时与字标基线间距为 0.18X。</p>
+  <p><b>最小尺寸</b>：屏幕端符号不小于 16px（需按 16px 版本加粗笔画至 7）；印刷不小于 6mm。</p>
+  <p><b>色彩</b>：主标识仅允许石墨 + 铜双色、全石墨单色、全反白三种形态。<span class="no">禁止</span>改变铜色色相，<span class="no">禁止</span>加渐变、阴影、描边发光。</p>
+  <p><b>禁止</b>：拉伸变形、旋转、改变四角臂长比例、把字母 F 换成其他字母、在图案上叠加文字或纹理。</p>
+  <p><b>图形语言延伸</b>：四角角标作为全站「选中 / 异常 / 待处理」三种语义的图形母题，用于表格选中、画布区域、空状态与报告封面。</p>
+  <p><b>字标</b>：FORGE 全大写，字间距 0.13em，字重 600；不得使用衬线体或手写体替代。</p>
+</div>
+
+</body>
+</html>

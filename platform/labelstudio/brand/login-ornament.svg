@@ -1,0 +1,14 @@
+<svg width="180" height="239" viewBox="0 0 180 239" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <title>FORGE 登录页装饰</title>
+  <desc>右下角采样框母题：暖铜底块 + 铜色框角 + 一枚实心铜块。替代 Label Studio 原本的橙/粉/紫三色方块棋盘。
+        框角故意超出 viewBox 下边界 3.5px（半个描边），形成「出血」效果，看起来是被裁切而非画歪。</desc>
+  <rect x="30" y="89" width="150" height="150" fill="#EDE7FA"/>
+  <rect x="105" y="164" width="75" height="75" fill="#D9CFF4"/>
+  <rect x="140" y="199" width="40" height="40" fill="#7A5CD6"/>
+  <g stroke="#7A5CD6" stroke-width="7" fill="none" stroke-linecap="round" opacity="0.85">
+    <path d="M30 127V89h38" />
+    <path d="M142 89h38v38" />
+    <path d="M30 201v38h38" />
+    <path d="M142 239h38v-38" />
+  </g>
+</svg>

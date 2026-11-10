@@ -1,0 +1,82 @@
+# ============================================================================
+# FORGE 统一入口 —— 域名部署模板（Caddyfile.domain）
+# ----------------------------------------------------------------------------
+# 由 install.sh 检测到 DOMAIN 已配置时复制为 caddy/Caddyfile。
+# 两个站点都由 Caddy 自动签发 HTTPS（要求 DNS 里 A 记录都指向本机）：
+#   https://{$DOMAIN}       平台前端（静态）+ /api → orchestrator:8300
+#   https://ls.{$DOMAIN}    Label Studio 标注工作台（平台 SSO 跳转目标）
+#
+# 为什么必须反代而不是把 8300/8100 直接对外：
+#   1. HTTPS 终结。手机号 + 密码走明文 HTTP 等于把全公司口令广播出去。
+#   2. 同源。前端与 API 同域后不必维护 CORS 白名单，也不会被浏览器的
+#      第三方 Cookie 策略掐掉。
+#   3. LS 的 access token 只有 5 分钟，续期依赖 Cookie，跨站会被拦。
+#
+# upstream 写 compose 服务名（orchestrator:8300 / web:3000 / labelstudio:8100），
+# 不是 127.0.0.1 —— 容器里没有「本机 8300」这回事。
+# ============================================================================
+
+{
+	email {$ACME_EMAIL:ops@example.cn}
+	admin off
+}
+
+# ---------------------------------------------------------------- 平台主站
+{$DOMAIN} {
+	encode zstd gzip
+
+	# 中间层 API：不缓存，保留真实 IP 供审计
+	handle /api/* {
+		reverse_proxy orchestrator:8300 {
+			header_up X-Forwarded-For {remote_host}
+			header_up X-Real-IP {remote_host}
+		}
+	}
+
+	handle /healthz {
+		reverse_proxy orchestrator:8300
+	}
+
+	# 前端静态资源（Nginx 容器只服务静态文件）
+	handle {
+		reverse_proxy web:3000
+	}
+
+	header {
+		X-Content-Type-Options nosniff
+		X-Frame-Options SAMEORIGIN
+		Referrer-Policy strict-origin-when-cross-origin
+		# 登录页含口令输入，禁止被任何第三方站点嵌套
+		Content-Security-Policy "frame-ancestors 'self'"
+		-Server
+	}
+
+	log {
+		output file /var/log/caddy/forge.log
+		format json
+	}
+}
+
+# ------------------------------------------------------------ Label Studio
+# 平台整页直达标注工作台，不再用 iframe 嵌套；但防御性头部仍保留，
+# 防止第三方站点把登录页拿去嵌套钓鱼。
+ls.{$DOMAIN} {
+	encode zstd gzip
+
+	reverse_proxy labelstudio:8100 {
+		header_up X-Forwarded-For {remote_host}
+		header_up X-Forwarded-Proto {scheme}
+		header_up Host {host}
+	}
+
+	header {
+		X-Frame-Options SAMEORIGIN
+		Content-Security-Policy "frame-ancestors 'self' https://{$DOMAIN}"
+		-Server
+	}
+
+	log {
+		output file /var/log/caddy/forge-ls.log
+		format json
+	}
+}

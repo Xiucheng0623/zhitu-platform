@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="256" height="256" role="img" aria-label="海荣广贸 标识">
+  <title>海荣广贸 · 标识</title>
+  <!--
+    海荣广贸 · 品牌标识
+    构成：不对称 H（海荣首字母，左柱短右柱高＝增长）+ 铜色波杠（海/贸易流动，穿柱上扬）
+    本文件为浅底版本：两柱 #1A1C20、波杠 #B4652E。
+    深底版本：把两柱的 #1A1C20 换成 #FAF9F7，波杠换成 #C98A5E。
+    最小可用尺寸 20px。
+  -->
+  <path d="M15 51V20" stroke="#1A1C20" stroke-width="10" stroke-linecap="round" fill="none" />
+  <path d="M49 51V11" stroke="#1A1C20" stroke-width="10" stroke-linecap="round" fill="none" />
+  <path d="M13 35C24 27 37 41 51 30" stroke="#B4652E" stroke-width="9" stroke-linecap="round" fill="none" />
+</svg>

@@ -1,0 +1,18 @@
+# 构建上下文（部署包根目录）里不需要的东西。
+# 三个 Dockerfile 的 COPY 都只从 src/ 取源码；这里排除的是
+# 打包/开发过程中混进来的产物，避免它们拖大构建上下文或覆盖镜像内产物。
+
+# 依赖与构建产物：镜像内 npm ci / pip install / vite build 会重新生成
+**/node_modules
+**/dist
+**/__pycache__
+**/*.pyc
+
+# 开发期截图与验证脚本
+**/_shots*
+**/*.log
+
+# 运行期数据，绝不进镜像
+backups
+*.tar.gz
+.env

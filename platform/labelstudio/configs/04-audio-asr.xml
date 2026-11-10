@@ -1,0 +1,37 @@
+<!-- ============================================================
+     智途 模板 04 · 语音转写 + 说话人分离
+     用途：客服/车载语音，逐段转写并标说话人角色
+     关键点：LS 的 ASR 模板以 audio + paragraph 对齐；逐句时间戳由
+             转写者在 AudioPlus 上框选生成，不要手填时间。
+     ============================================================ -->
+<View>
+  <AudioPlus name="audio" value="$audio" zoom="true" hotkey="space"/>
+
+  <Labels name="speaker" toName="audio" choice="single">
+    <Label value="agent" background="#B4652E" hotkey="1"/>
+    <Label value="customer" background="#3A5F8A" hotkey="2"/>
+    <Label value="third_party" background="#B08C2A" hotkey="3"/>
+    <Label value="noise" background="#5A6270" hotkey="4"/>
+  </Labels>
+
+  <Paragraphs name="transcript" value="$transcript" layout="dialogue"
+              nameKey="speaker" textKey="text"/>
+
+  <Choices name="intent" toName="audio" choice="single" showInline="true" required="true">
+    <Choice value="consult"/>
+    <Choice value="complaint"/>
+    <Choice value="churn_risk"/>
+    <Choice value="upsell"/>
+    <Choice value="other"/>
+  </Choices>
+
+  <Choices name="emotion" toName="audio" choice="multiple" showInline="true">
+    <Choice value="neutral"/>
+    <Choice value="satisfied"/>
+    <Choice value="frustrated"/>
+    <Choice value="angry"/>
+  </Choices>
+
+  <TextArea name="correction" toName="audio" editable="true"
+            placeholder="转写纠错（原文 → 修正）" rows="2"/>
+</View>

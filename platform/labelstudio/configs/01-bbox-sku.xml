@@ -1,0 +1,37 @@
+<!-- ============================================================
+     智途 模板 01 · 商品图 BBox + SKU 分类
+     用途：电商商品图，框出主体并打 SKU 类目
+     LS 项目：BBox + SKU Classification（图像）
+     注意：<View> 下的标签名（对象名）是下游导出与质量校验的键，
+           改名会让历史标注对不上，只允许追加不允许重命名。
+     ============================================================ -->
+<View>
+  <Image name="image" value="$image" zoom="true" zoomControl="true"/>
+
+  <RectangleLabels name="bbox" toName="image" strokeWidth="2">
+    <Label value="main_product" background="#B4652E" hotkey="1"/>
+    <Label value="accessory" background="#3A5F8A" hotkey="2"/>
+    <Label value="packaging" background="#B08C2A" hotkey="3"/>
+    <Label value="watermark" background="#8A6A9E" hotkey="4"/>
+    <Label value="defect" background="#B03A3A" hotkey="5"/>
+  </RectangleLabels>
+
+  <Choices name="sku_category" toName="image" choice="single" showInline="true" required="true">
+    <Choice value="apparel"/>
+    <Choice value="electronics"/>
+    <Choice value="beauty"/>
+    <Choice value="home"/>
+    <Choice value="jewelry"/>
+    <Choice value="other"/>
+  </Choices>
+
+  <Choices name="quality_flag" toName="image" choice="multiple" showInline="true">
+    <Choice value="blurry"/>
+    <Choice value="occluded"/>
+    <Choice value="low_contrast"/>
+    <Choice value="duplicate"/>
+  </Choices>
+
+  <TextArea name="note" toName="image" editable="true"
+            placeholder="异常备注（选 quality_flag 时必填）" rows="2" maxSubmissions="1"/>
+</View>

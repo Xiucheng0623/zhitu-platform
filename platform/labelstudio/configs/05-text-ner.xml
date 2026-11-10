@@ -1,0 +1,35 @@
+<!-- ============================================================
+     智途 模板 05 · 文本 NER + 意图分类
+     用途：工单/对话文本，抽实体并判意图
+     关键点：<Labels> 用于 text 的 span 标注；实体名与下游导出字段同名，
+             新增实体只追加，不改已有 value。
+     ============================================================ -->
+<View>
+  <Text name="text" value="$text" granularity="symbol"/>
+
+  <Labels name="ner" toName="text" choice="single">
+    <Label value="PERSON" background="#3A5F8A" hotkey="1"/>
+    <Label value="ORG" background="#B4652E" hotkey="2"/>
+    <Label value="PRODUCT" background="#2C7857" hotkey="3"/>
+    <Label value="AMOUNT" background="#B08C2A" hotkey="4"/>
+    <Label value="DATE" background="#6B3FA0" hotkey="5"/>
+    <Label value="LOCATION" background="#5A6270" hotkey="6"/>
+  </Labels>
+
+  <Choices name="intent" toName="text" choice="single" showInline="true" required="true">
+    <Choice value="refund_request"/>
+    <Choice value="technical_issue"/>
+    <Choice value="order_status"/>
+    <Choice value="complaint"/>
+    <Choice value="general_inquiry"/>
+  </Choices>
+
+  <Choices name="sentiment" toName="text" choice="single" showInline="true" required="true">
+    <Choice value="positive"/>
+    <Choice value="neutral"/>
+    <Choice value="negative"/>
+  </Choices>
+
+  <TextArea name="summary" toName="text" editable="true"
+            placeholder="一句话摘要（限 50 字）" rows="2" maxSubmissions="1"/>
+</View>

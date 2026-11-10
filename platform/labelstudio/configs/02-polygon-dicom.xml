@@ -1,0 +1,30 @@
+<!-- ============================================================
+     智途 模板 02 · 医学影像多边形分割（DICOM）
+     用途：病灶区域轮廓标注，供分割模型训练
+     关键点：DICOM 需先转 PNG/JPEG 预览再入 LS（LS 不直接渲染 DICOM），
+             原始 DICOM 留在对象存储，仅把预览图地址写入 $image。
+     ============================================================ -->
+<View>
+  <Image name="image" value="$image" zoom="true" zoomControl="true" rotateControl="true"/>
+
+  <PolygonLabels name="lesion" toName="image" strokeWidth="2" pointSize="small" opacity="0.25">
+    <Label value="lesion_core" background="#B03A3A" hotkey="1"/>
+    <Label value="lesion_margin" background="#B4652E" hotkey="2"/>
+    <Label value="edema" background="#B08C2A" hotkey="3"/>
+    <Label value="necrosis" background="#6B3FA0" hotkey="4"/>
+    <Label value="artifact" background="#5A6270" hotkey="5"/>
+  </PolygonLabels>
+
+  <KeyPointLabels name="landmark" toName="image" strokeWidth="2">
+    <Label value="reference_point" background="#2C7857" hotkey="6"/>
+  </KeyPointLabels>
+
+  <Choices name="density" toName="image" choice="single" showInline="true" required="true">
+    <Choice value="solid"/>
+    <Choice value="part_solid"/>
+    <Choice value="ground_glass"/>
+    <Choice value="cystic"/>
+  </Choices>
+
+  <Rating name="confidence" toName="image" maxRating="5" icon="star" required="true"/>
+</View>

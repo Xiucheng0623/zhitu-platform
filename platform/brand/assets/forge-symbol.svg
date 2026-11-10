@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="FORGE">
+  <title>FORGE symbol</title>
+  <desc>采样框包裹负形字母 F：框代表标注取样，F 为品牌首字母。</desc>
+  <g fill="none" stroke="#14161A" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M8 20V9.6h10.4" />
+    <path d="M56 20V9.6H45.6" />
+    <path d="M8 44v10.4h10.4" />
+    <path d="M56 44v10.4H45.6" />
+  </g>
+  <g fill="none" stroke="#B4652E" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M24 46V21h19" />
+    <path d="M24 33h12" />
+  </g>
+</svg>

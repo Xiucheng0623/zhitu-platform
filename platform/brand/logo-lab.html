@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>FORGE · 标识方案对比</title>
+<style>
+  :root{
+    --ink:#14161A; --paper:#FAF9F7; --line:#E4E0D9;
+    --copper:#B4652E; --copper-l:#D08A57; --graphite:#333941; --mute:#767C85;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);font-family:"Inter","Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;color:var(--ink);padding:40px 48px}
+  h1{font-size:20px;font-weight:600;letter-spacing:-.01em;margin:0 0 4px}
+  .sub{font-size:12.5px;color:var(--mute);margin-bottom:28px;max-width:78ch;line-height:1.7}
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+  .card{border:1px solid var(--line);border-radius:6px;background:#fff;overflow:hidden}
+  .card__head{padding:12px 16px;border-bottom:1px solid #EFECE7;display:flex;align-items:baseline;gap:8px}
+  .card__name{font-size:13px;font-weight:600}
+  .card__tag{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#9AA0A8;padding:2px 6px;border:1px solid var(--line);border-radius:3px}
+  .stage{padding:34px 0;display:grid;place-items:center;background:#fff;border-bottom:1px solid #EFECE7}
+  .stage--dark{background:#14161A}
+  .rowline{display:flex;align-items:center;justify-content:center;gap:26px;padding:14px 0;border-bottom:1px solid #EFECE7}
+  .rowline:last-child{border-bottom:0}
+  .cap{font-size:10px;color:#9AA0A8;text-align:center;margin-top:6px;font-family:"Cascadia Mono",Consolas,monospace}
+  .lockup{display:flex;align-items:center;gap:11px}
+  .wordmark{font-size:19px;font-weight:600;letter-spacing:.16em;line-height:1}
+  .wordmark--dark{color:#FAF9F7}
+  .kicker{font-size:7px;letter-spacing:.22em;color:#8B929C;margin-top:5px}
+  .note{margin-top:26px;font-size:12px;color:#4B5057;line-height:1.85;border-left:2px solid var(--copper);padding-left:14px}
+  .note b{font-weight:600}
+  .lab{font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:#9AA0A8;margin-bottom:10px;text-align:center}
+</style>
+</head>
+<body>
+
+<h1>FORGE · 标识方案对比</h1>
+<p class="sub">三个方向都围绕同一组语义：<b>采样框（标注）</b>、<b>锻打（把原料变成可交付物）</b>、<b>堆叠（批次与层级）</b>。判断标准是 16px 下能否辨识、单色是否成立、是否避开通用 AI 视觉符号。</p>
+
+<div class="grid">
+
+  <!-- ============ A ============ -->
+  <div class="card">
+    <div class="card__head"><span class="card__name">A · Sample</span><span class="card__tag">采样框 + 数据线</span></div>
+
+    <div class="stage">
+      <svg width="150" height="150" viewBox="0 0 64 64" aria-label="A 大图">
+        <g fill="none" stroke="#B4652E" stroke-width="4.6" stroke-linecap="round">
+          <path d="M8 20V9.5h10.5"/>
+          <path d="M56 20V9.5H45.5"/>
+          <path d="M8 44v10.5h10.5"/>
+          <path d="M56 44v10.5H45.5"/>
+        </g>
+        <g fill="#14161A">
+          <rect x="20" y="21" width="24" height="4.4" rx="2.2"/>
+          <rect x="20" y="30" width="17" height="4.4" rx="2.2"/>
+          <rect x="20" y="39" width="24" height="4.4" rx="2.2"/>
+        </g>
+      </svg>
+    </div>
+
+    <div class="rowline" style="gap:22px">
+      <div>
+        <svg width="24" height="24" viewBox="0 0 64 64">
+          <g fill="none" stroke="#B4652E" stroke-width="4.6" stroke-linecap="round">
+            <path d="M8 20V9.5h10.5"/><path d="M56 20V9.5H45.5"/><path d="M8 44v10.5h10.5"/><path d="M56 44v10.5H45.5"/>
+          </g>
+          <g fill="#14161A"><rect x="20" y="21" width="24" height="4.4" rx="2.2"/><rect x="20" y="30" width="17" height="4.4" rx="2.2"/><rect x="20" y="39" width="24" height="4.4" rx="2.2"/></g>
+        </svg>
+        <div class="cap">24px</div>
+      </div>
+      <div>
+        <svg width="16" height="16" viewBox="0 0 64 64">
+          <g fill="none" stroke="#B4652E" stroke-width="6" stroke-linecap="round">
+            <path d="M8 20V9.5h10.5"/><path d="M56 20V9.5H45.5"/><path d="M8 44v10.5h10.5"/><path d="M56 44v10.5H45.5"/>
+          </g>
+          <g fill="#14161A"><rect x="20" y="21" width="24" height="5" rx="2"/><rect x="20" y="30" width="17" height="5" rx="2"/><rect x="20" y="39" width="24" height="5" rx="2"/></g>
+        </svg>
+        <div class="cap">16px</div>
+      </div>
+      <div>
+        <svg width="24" height="24" viewBox="0 0 64 64">
+          <g fill="none" stroke="#FAF9F7" stroke-width="4.6" stroke-linecap="round">
+            <path d="M8 20V9.5h10.5"/><path d="M56 20V9.5H45.5"/><path d="M8 44v10.5h10.5"/><path d="M56 44v10.5H45.5"/>
+          </g>
+          <g fill="#D08A57"><rect x="20" y="21" width="24" height="4.4" rx="2.2"/><rect x="20" y="30" width="17" height="4.4" rx="2.2"/><rect x="20" y="39" width="24" height="4.4" rx="2.2"/></g>
+        </svg>
+        <div class="cap">反白</div>
+      </div>
+      <div>
+        <svg width="24" height="24" viewBox="0 0 64 64">
+          <g fill="none" stroke="#14161A" stroke-width="4.6" stroke-linecap="round">
+            <path d="M8 20V9.5h10.5"/><path d="M56 20V9.5H45.5"/><path d="M8 44v10.5h10.5"/><path d="M56 44v10.5H45.5"/>
+          </g>
+          <g fill="#14161A"><rect x="20" y="21" width="24" height="4.4" rx="2.2"/><rect x="20" y="30" width="17" height="4.4" rx="2.2"/><rect x="20" y="39" width="24" height="4.4" rx="2.2"/></g>
+        </svg>
+        <div class="cap">单色</div>
+      </div>
+    </div>
+
+    <div class="stage stage--dark" style="padding:22px 0">
+      <div class="lockup">
+        <svg width="26" height="26" viewBox="0 0 64 64">
+          <g fill="none" stroke="#D08A57" stroke-width="4.6" stroke-linecap="round">
+            <path d="M8 20V9.5h10.5"/><path d="M56 20V9.5H45.5"/><path d="M8 44v10.5h10.5"/><path d="M56 44v10.5H45.5"/>
+          </g>
+          <g fill="#FAF9F7"><rect x="20" y="21" width="24" height="4.4" rx="2.2"/><rect x="20" y="30" width="17" height="4.4" rx="2.2"/><rect x="20" y="39" width="24" height="4.4" rx="2.2"/></g>
+        </svg>
+        <div><div class="wordmark wordmark--dark">FORGE</div><div class="kicker">AI DATA OPERATIONS</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ B ============ -->
+  <div class="card">
+    <div class="card__head"><span class="card__name">B · Split</span><span class="card__tag">锻打分模线</span></div>
+
+    <div class="stage">
+      <svg width="150" height="150" viewBox="0 0 64 64" aria-label="B 大图">
+        <path d="M9 9h46v18.5H9z" fill="#14161A"/>
+        <rect x="9" y="30.6" width="46" height="3.2" fill="#B4652E"/>
+        <path d="M9 36.5h46V55H9z" fill="#14161A"/>
+        <rect x="34" y="14" width="15" height="8" rx="1.4" fill="#FAF9F7" opacity=".92"/>
+      </svg>
+    </div>
+
+    <div class="rowline" style="gap:22px">
+      <div>
+        <svg width="24" height="24" viewBox="0 0 64 64">
+          <path d="M9 9h46v18.5H9z" fill="#14161A"/><rect x="9" y="30.6" width="46" height="3.2" fill="#B4652E"/><path d="M9 36.5h46V55H9z" fill="#14161A"/>
+          <rect x="34" y="14" width="15" height="8" rx="1.4" fill="#FAF9F7"/>
+        </svg>
+        <div class="cap">24px</div>
+      </div>
+      <div>
+        <svg width="16" height="16" viewBox="0 0 64 64">
+          <path d="M9 9h46v18.5H9z" fill="#14161A"/><rect x="9" y="30" width="46" height="4.4" fill="#B4652E"/><path d="M9 37h46v18H9z" fill="#14161A"/>
+        </svg>
+        <div class="cap">16px</div>
+      </div>
+      <div>
+        <svg width="24" height="24" viewBox="0 0 64 64">
+          <path d="M9 9h46v18.5H9z" fill="#FAF9F7"/><rect x="9" y="30.6" width="46" height="3.2" fill="#D08A57"/><path d="M9 36.5h46V55H9z" fill="#FAF9F7"/>
+          <rect x="34" y="14" width="15" height="8" rx="1.4" fill="#14161A"/>
+        </svg>
+        <div class="cap">反白</div>
+      </div>
+      <div>
+        <svg width="24" height="24" viewBox="0 0 64 64">
+          <path d="M9 9h46v18.5H9z" fill="#14161A"/><path d="M9 36.5h46V55H9z" fill="#14161A"/>
+          <rect x="34" y="14" width="15" height="8" rx="1.4" fill="#FAF9F7"/>
+        </svg>
+        <div class="cap">单色</div>
+      </div>
+    </div>
+
+    <div class="stage stage--dark" style="padding:22px 0">
+      <div class="lockup">
+        <svg width="26" height="26" viewBox="0 0 64 64">
+          <path d="M9 9h46v18.5H9z" fill="#FAF9F7" opacity=".93"/><rect x="9" y="30.6" width="46" height="3.2" fill="#D08A57"/><path d="M9 36.5h46V55H9z" fill="#FAF9F7" opacity=".93"/>
+          <rect x="34" y="14" width="15" height="8" rx="1.4" fill="#14161A"/>
+        </svg>
+        <div><div class="wordmark wordmark--dark">FORGE</div><div class="kicker">AI DATA OPERATIONS</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ C ============ -->
+  <div class="card">
+    <div class="card__head"><span class="card__name">C · Stack</span><span class="card__tag">加工层级</span></div>
+
+    <div class="stage">
+      <svg width="150" height="150" viewBox="0 0 64 64" aria-label="C 大图">
+        <rect x="13" y="11" width="38" height="11" rx="2" fill="#B4652E" opacity=".38"/>
+        <rect x="13" y="26" width="38" height="11" rx="2" fill="#B4652E" opacity=".68"/>
+        <rect x="13" y="41" width="38" height="11" rx="2" fill="#B4652E"/>
+        <rect x="13" y="41" width="11" height="11" rx="2" fill="#14161A"/>
+      </svg>
+    </div>
+
+    <div class="rowline" style="gap:22px">
+      <div>
+        <svg width="24" height="24" viewBox="0 0 64 64">
+          <rect x="13" y="11" width="38" height="11" rx="2" fill="#B4652E" opacity=".38"/>
+          <rect x="13" y="26" width="38" height="11" rx="2" fill="#B4652E" opacity=".68"/>
+          <rect x="13" y="41" width="38" height="11" rx="2" fill="#B4652E"/>
+          <rect x="13" y="41" width="11" height="11" rx="2" fill="#14161A"/>
+        </svg>
+        <div class="cap">24px</div>
+      </div>
+      <div>
+        <svg width="16" height="16" viewBox="0 0 64 64">
+          <rect x="11" y="9" width="42" height="13" rx="2" fill="#B4652E" opacity=".38"/>
+          <rect x="11" y="25" width="42" height="13" rx="2" fill="#B4652E" opacity=".68"/>
+          <rect x="11" y="41" width="42" height="13" rx="2" fill="#B4652E"/>
+        </svg>
+        <div class="cap">16px</div>
+      </div>
+      <div>
+        <svg width="24" height="24" viewBox="0 0 64 64">
+          <rect x="13" y="11" width="38" height="11" rx="2" fill="#FAF9F7" opacity=".35"/>
+          <rect x="13" y="26" width="38" height="11" rx="2" fill="#FAF9F7" opacity=".66"/>
+          <rect x="13" y="41" width="38" height="11" rx="2" fill="#FAF9F7"/>
+          <rect x="13" y="41" width="11" height="11" rx="2" fill="#D08A57"/>
+        </svg>
+        <div class="cap">反白</div>
+      </div>
+      <div>
+        <svg width="24" height="24" viewBox="0 0 64 64">
+          <rect x="13" y="11" width="38" height="11" rx="2" fill="#14161A" opacity=".3"/>
+          <rect x="13" y="26" width="38" height="11" rx="2" fill="#14161A" opacity=".6"/>
+          <rect x="13" y="41" width="38" height="11" rx="2" fill="#14161A"/>
+        </svg>
+        <div class="cap">单色</div>
+      </div>
+    </div>
+
+    <div class="stage stage--dark" style="padding:22px 0">
+      <div class="lockup">
+        <svg width="26" height="26" viewBox="0 0 64 64">
+          <rect x="13" y="11" width="38" height="11" rx="2" fill="#FAF9F7" opacity=".35"/>
+          <rect x="13" y="26" width="38" height="11" rx="2" fill="#FAF9F7" opacity=".66"/>
+          <rect x="13" y="41" width="38" height="11" rx="2" fill="#FAF9F7"/>
+          <rect x="13" y="41" width="11" height="11" rx="2" fill="#D08A57"/>
+        </svg>
+        <div><div class="wordmark wordmark--dark">FORGE</div><div class="kicker">AI DATA OPERATIONS</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="note">
+  <b>评判维度</b>：① 16px 下是否仍可辨；② 单色印刷是否成立；③ 是否与「AI 通用视觉」（紫色渐变、星芒、神经网络节点）划清界限；④ 能否延伸为系统级图形语言（页面空状态、加载动画、报告封面）。<br>
+  <b>倾向</b>：A 的语义最强（框=标注，线=数据），且四角符号可单独抽出做「选中态」图形语言；B 最有力量感但 16px 下内部小方块会糊；C 在小尺寸会退化成三条横线。
+</div>
+
+</body>
+</html>

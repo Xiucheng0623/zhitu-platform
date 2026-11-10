@@ -1,0 +1,280 @@
+/* ============================================================================
+   智途 Design System · Tokens
+   ----------------------------------------------------------------------------
+   设计立场（Design Position）
+   1. 结构色：石墨近黑 + 暖灰中性阶，拒绝冷蓝灰的"通用 SaaS"感
+   2. 强调色：低饱和紫罗兰 #7A5CD6 —— 单一强调色，只用于主操作、活跃态与关键数据
+      深底用更亮的 --fk-accent-400（#9B82E8）才压得住石墨，不要反过来用 500
+   3. 层次靠 1px 边框与留白，不靠阴影；阴影仅用于浮层
+   4. 圆角克制：2/4/6px，不使用 12px+ 的大圆角卡片
+   5. 数字一律 tabular-nums，表格纵向对齐
+   6. 明确定义间距与字号阶梯，禁止页面级 magic number
+   ========================================================================= */
+
+@font-face {
+  font-family: "Zhitu Serif";
+  src: url("/fonts/zhitu-serif.woff2") format("woff2");
+  font-weight: 200 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  /* — 品牌字标 —————————————————————————————————————————
+     思源宋体（Noto Serif SC）的子集，只保留「·智途」三个字形，1.5 KB。
+     为什么不用系统黑体：界面字已经是无衬线，字标必须换一套骨架才立得住；
+     宋体的收笔与字腔能把「智」的横势和「途」的走之底立住，也不会和表格
+     里的字混成一团。换品牌名时必须重做这份子集 —— 少一个字形就会静默
+     回退到系统宋体，字重、字幅全不对，而且只有字标那两个字看得出来。
+     font-weight 声明区间，因为源文件是 variable font。 */
+  --fk-font-brand: "Zhitu Serif", "Noto Serif SC", "Songti SC", "SimSun", serif;
+
+  /* — 结构色（Graphite） ————————————————————————————— */
+  --fk-graphite-950: #0F1113;
+  --fk-graphite-900: #14161A;
+  --fk-graphite-850: #1A1D22;
+  --fk-graphite-800: #22262C;
+  --fk-graphite-700: #333941;
+  --fk-graphite-600: #4A515B;
+  --fk-graphite-500: #6B7280;
+  --fk-graphite-400: #8B929C;
+  --fk-graphite-300: #AEB4BD;
+
+  /* — 暖中性阶（Warm Neutrals） —————————————————————— */
+  --fk-ink: #1B1D21;        /* 主文字 */
+  --fk-ink-2: #4B5057;      /* 次级文字 */
+  --fk-ink-3: #767C85;      /* 辅助文字 / 标签 */
+  --fk-ink-4: #9AA0A8;      /* 占位 / 禁用 */
+
+  --fk-canvas: #FAF9F7;     /* 应用画布（暖白） */
+  --fk-surface: #FFFFFF;    /* 卡片 / 表格 */
+  --fk-surface-2: #F4F2EE;  /* 次级填充（表头、代码块） */
+  --fk-surface-3: #EAE7E1;  /* 更深填充 */
+
+  --fk-line: #E4E0D9;       /* 标准边框 */
+  --fk-line-strong: #D2CDC4;
+  --fk-line-soft: #EFECE7;
+
+  /* — 强调色：紫罗兰（Accent / Violet） ——————————————— */
+  --fk-accent-900: #36276B;
+  --fk-accent-700: #543C9E;
+  --fk-accent-600: #6648BE;
+  --fk-accent-500: #7A5CD6;   /* 主强调（浅底） */
+  --fk-accent-400: #9B82E8;   /* 深底文字/图标 */
+  --fk-accent-200: #D9CFF4;
+  --fk-accent-100: #EDE7FA;
+  --fk-accent-50:  #F8F5FD;
+
+  /* — 语义色（Semantic，全部低饱和） ————————————————— */
+  --fk-success-700: #22664A;
+  --fk-success-600: #2C7857;
+  --fk-success-100: #E2EFE8;
+  --fk-success-50:  #F0F7F3;
+
+  --fk-warn-700: #8A5D10;
+  --fk-warn-600: #A87218;
+  --fk-warn-100: #F7ECD5;
+  --fk-warn-50:  #FCF6E9;
+
+  --fk-danger-700: #8F3623;
+  --fk-danger-600: #A8432C;
+  --fk-danger-100: #F8E3DD;
+  --fk-danger-50:  #FCF1EE;
+
+  --fk-info-700: #2E4E73;
+  --fk-info-600: #3A5F8A;
+  --fk-info-100: #E3EAF3;
+  --fk-info-50:  #F1F5FA;
+
+  /* — 数据可视化色板（12 色，低饱和，明度接近，适合并置） —— */
+  --fk-viz-1: #7A5CD6;
+  --fk-viz-2: #3A5F8A;
+  --fk-viz-3: #2C7857;
+  --fk-viz-4: #8A6A9E;
+  --fk-viz-5: #B08C2A;
+  --fk-viz-6: #A8432C;
+  --fk-viz-7: #4E7F86;
+  --fk-viz-8: #6B6F8A;
+  --fk-viz-9: #7E8C4A;
+  --fk-viz-10: #9A5E7A;
+  --fk-viz-11: #5C6B80;
+  --fk-viz-12: #8A7355;
+
+  /* — 字体 ———————————————————————————————————————— */
+  --fk-font-sans: "Inter", "Segoe UI Variable Text", -apple-system, BlinkMacSystemFont,
+    "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+  --fk-font-mono: "JetBrains Mono", "SF Mono", "Cascadia Mono", "Consolas", "Liberation Mono", monospace;
+
+  /* 字号阶梯 —— 企业级，基准 13px，避免过大标题挤压信息密度 */
+  --fk-text-2xs: 10px;
+  --fk-text-xs: 11px;
+  --fk-text-sm: 12px;
+  --fk-text-base: 13px;
+  --fk-text-md: 14px;
+  --fk-text-lg: 16px;
+  --fk-text-xl: 20px;
+  --fk-text-2xl: 26px;
+  --fk-text-3xl: 34px;
+  --fk-text-display: 44px;
+
+  --fk-leading-tight: 1.2;
+  --fk-leading-snug: 1.35;
+  --fk-leading-normal: 1.55;
+
+  --fk-weight-regular: 400;
+  --fk-weight-medium: 500;
+  --fk-weight-semibold: 600;
+  --fk-weight-bold: 700;
+
+  --fk-tracking-tight: -0.015em;
+  --fk-tracking-caps: 0.06em;
+
+  /* — 间距（4px 基数） ————————————————————————————— */
+  --fk-space-1: 2px;
+  --fk-space-2: 4px;
+  --fk-space-3: 6px;
+  --fk-space-4: 8px;
+  --fk-space-5: 12px;
+  --fk-space-6: 16px;
+  --fk-space-7: 20px;
+  --fk-space-8: 24px;
+  --fk-space-9: 32px;
+  --fk-space-10: 40px;
+  --fk-space-11: 48px;
+  --fk-space-12: 64px;
+
+  /* — 圆角（克制） ————————————————————————————————— */
+  --fk-radius-xs: 2px;
+  --fk-radius-sm: 3px;
+  --fk-radius-md: 4px;
+  --fk-radius-lg: 6px;
+  --fk-radius-pill: 999px;
+
+  /* — 阴影（仅浮层使用） ——————————————————————————— */
+  --fk-shadow-1: 0 1px 2px rgba(20, 22, 26, 0.06);
+  --fk-shadow-2: 0 8px 24px -14px rgba(20, 22, 26, 0.24), 0 2px 6px rgba(20, 22, 26, 0.05);
+  --fk-shadow-3: 0 24px 64px -28px rgba(20, 22, 26, 0.4), 0 4px 12px rgba(20, 22, 26, 0.08);
+  --fk-ring: 0 0 0 3px rgba(122, 92, 214, 0.16);
+
+  /* — 动效 ——————————————————————————————————————— */
+  --fk-ease: cubic-bezier(0.2, 0.7, 0.3, 1);
+  --fk-dur-1: 120ms;
+  --fk-dur-2: 180ms;
+  --fk-dur-3: 260ms;
+
+  /* — 布局 ——————————————————————————————————————— */
+  --fk-sidebar-w: 236px;
+  --fk-sidebar-collapsed-w: 60px;
+  --fk-topbar-h: 52px;
+  --fk-content-max: 1560px;
+  --fk-z-drawer: 60;
+  --fk-z-modal: 70;
+  --fk-z-toast: 90;
+}
+
+/* ============================ Reset ======================================= */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--fk-canvas);
+  color: var(--fk-ink);
+  font-family: var(--fk-font-sans);
+  font-size: var(--fk-text-base);
+  line-height: var(--fk-leading-normal);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+h1, h2, h3, h4, h5, h6, p, figure {
+  margin: 0;
+}
+
+ul, ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+:focus-visible {
+  outline: 2px solid var(--fk-accent-500);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: var(--fk-accent-100);
+  color: var(--fk-accent-900);
+}
+
+/* 数字对齐：所有数据型数字必须使用 */
+.fk-num {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+.fk-mono {
+  font-family: var(--fk-font-mono);
+  font-size: var(--fk-text-sm);
+  letter-spacing: -0.01em;
+}
+
+/* 滚动条 —— 细、低调 */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--fk-line-strong) transparent;
+}
+*::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--fk-line-strong);
+  border: 2px solid transparent;
+  background-clip: content-box;
+  border-radius: 999px;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--fk-graphite-400);
+  background-clip: content-box;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

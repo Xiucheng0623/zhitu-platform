@@ -1,0 +1,37 @@
+<!-- ============================================================
+     智途 模板 03 · 视频时序边界 + 安全行为标签
+     用途：行车/作业视频，切分关键片段并标注安全事件
+     关键点：$video 需为可 Range 请求的直链（S3 预签名会把时长限制在 15min 内），
+             长视频先切片再导入，否则 LS 播放器拖动会失败。
+     ============================================================ -->
+<View>
+  <Video name="video" value="$video" frameRate="$fps" sync="video"/>
+
+  <TimelineLabels name="segment" toName="video" zoom="true" showMagnifier="true">
+    <Label value="normal_driving" background="#2C7857"/>
+    <Label value="hard_brake" background="#B08C2A"/>
+    <Label value="lane_departure" background="#B4652E"/>
+    <Label value="close_follow" background="#3A5F8A"/>
+    <Label value="pedestrian_cross" background="#6B3FA0"/>
+    <Label value="intervention" background="#B03A3A"/>
+  </TimelineLabels>
+
+  <VideoRectangle name="bbox" toName="video"/>
+
+  <Taxonomy name="safety_level" toName="video" leafsOnly="true" required="true">
+    <Choice value="Safe">
+      <Choice value="L0_no_event"/>
+    </Choice>
+    <Choice value="Risk">
+      <Choice value="L1_minor"/>
+      <Choice value="L2_moderate"/>
+    </Choice>
+    <Choice value="Critical">
+      <Choice value="L3_severe"/>
+      <Choice value="L4_collision"/>
+    </Choice>
+  </Taxonomy>
+
+  <TextArea name="event_desc" toName="video" editable="true"
+            placeholder="事件经过：时间点 + 对象 + 动作" rows="3"/>
+</View>

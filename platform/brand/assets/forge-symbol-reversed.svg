@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="FORGE">
+  <title>FORGE symbol · reversed</title>
+  <desc>深色底反白版本，用于石墨背景。</desc>
+  <g fill="none" stroke="#FAF9F7" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M8 20V9.6h10.4" />
+    <path d="M56 20V9.6H45.6" />
+    <path d="M8 44v10.4h10.4" />
+    <path d="M56 44v10.4H45.6" />
+  </g>
+  <g fill="none" stroke="#D08A57" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M24 46V21h19" />
+    <path d="M24 33h12" />
+  </g>
+</svg>

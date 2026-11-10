@@ -1,0 +1,267 @@
+{# FORGE 标注工作台外壳：品牌启动态 + 品牌加载动画 + 返回平台入口 #}
+{# 由 apply_brand.py 注入到 templates/base.html 的 <body> 之后。 #}
+<style id="forge-wb-shell-css">
+  /* ---- 1. 整页品牌启动态：盖住 LS 自己的加载画面 ---- */
+  #forge-wb-boot {
+    position: fixed;
+    inset: 0;
+    z-index: 2147483000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    background: #FBFAFE;
+    font-family: -apple-system, "Microsoft YaHei", "PingFang SC", sans-serif;
+    transition: opacity .32s ease, visibility .32s ease;
+  }
+  #forge-wb-boot.is-done { opacity: 0; visibility: hidden; pointer-events: none; }
+  #forge-wb-boot .f-logo { width: 52px; height: 52px; object-fit: contain; }
+  #forge-wb-boot .f-name {
+    font-family: "Zhitu Serif", "Noto Serif SC", "Songti SC", "SimSun", serif;
+    font-size: 26px; font-weight: 500; letter-spacing: .16em; color: #2A2340;
+  }
+  #forge-wb-boot .f-rule {
+    width: 46px; height: 1px; margin: 4px 0 2px;
+    background: linear-gradient(90deg, transparent, #9B82E8, transparent);
+  }
+  #forge-wb-boot .f-status { font-size: 12.5px; letter-spacing: .05em; color: #3A3352; }
+  #forge-wb-boot .f-bar {
+    position: relative; width: 190px; height: 2px; margin-top: 12px;
+    overflow: hidden; border-radius: 2px; background: #EDE7FA;
+  }
+  #forge-wb-boot .f-bar i {
+    position: absolute; inset: 0 auto 0 0; width: 36%; border-radius: 2px;
+    background: #7A5CD6; animation: forge-wb-slide 1.15s ease-in-out infinite;
+  }
+  @keyframes forge-wb-slide { 0% { transform: translateX(-100%); } 100% { transform: translateX(280%); } }
+
+  /* ---- 2. 彻底移除 LS 原版加载动画 ----
+     实测 DOM（LS 1.23.2）：
+       .lsf-spinner-ls / .lsf-spinner-ls__body   旧版四个旋转方块
+       .spinner--T02EM / .body--iqKYi           新版 UI kit 的方形 spinner
+       svg path.spike-fill / .spike-stroke      Heidi 负鼠刺的内联 SVG
+       .lsf-app-loader > div > div > img        标注前端的动物 GIF（见下）
+     旧方案把品牌 PNG 盖到 spinner body 上，但那只动物不在 body 里，
+     照样出现在深色加载页正中央。现在整层隐藏；用户看到的是第 1 节的
+     品牌启动态，等 React 界面真正挂载后才撤遮罩，不留空窗。 */
+  .lsf-spinner-ls,
+  .lsf-spinner-ls__body,
+  .spinner--T02EM,
+  .body--iqKYi,
+  [class*="spinner"] > [class*="body"],
+  svg:has(path.spike-fill),
+  svg:has(path.spike-stroke),
+  svg path.spike-fill,
+  svg path.spike-stroke {
+    display: none !important;
+  }
+
+  /* 标注前端（LSF）自己的应用加载器 —— 这是最后一只漏网的动物：
+     DOM 是 .lsf-app-loader > div(128px) > div > img[src=data:image/gif;base64,...]，
+     一个 64×64 的动物动画 GIF 被放大到 128px 显示。它既没有 spinner 类名，
+     也不是 SVG，所以上面那批规则完全命中不到。
+     处理方式：只隐藏 img（保留容器），再用品牌圆环补位 ——
+     整块 display:none 会让加载期变纯白，用户会以为页面卡死。
+     容器设成 flex 居中，::after 作为它的唯一子项自然居中。 */
+  .lsf-app-loader {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+  }
+  .lsf-app-loader img {
+    display: none !important;
+  }
+  .lsf-app-loader::after {
+    content: "";
+    width: 32px;
+    height: 32px;
+    border: 2px solid #E4DCF7;
+    border-top-color: #7A5CD6;
+    border-radius: 50%;
+    animation: forge-wb-spin .8s linear infinite;
+  }
+  @keyframes forge-wb-spin {
+    to { transform: rotate(360deg); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .lsf-app-loader::after { animation: none; border-top-color: #E4DCF7; }
+  }
+
+  /* ---- 3. 删除导入页的第三方云存储品牌位 ----
+     「导入数据，开始你的第一个项目」页里的 Amazon S3 / Google / Azure /
+     Redis 图标是一个带 data-testid 的整体容器，精确命中，不影响配置表单。 */
+  [data-testid="dm-storage-provider-icons"] {
+    display: none !important;
+  }
+
+  /* ---- 4. 返回主工作台（整页进入后没有侧栏，必须给回路） ---- */
+  #forge-wb-back {
+    position: fixed;
+    right: 18px;
+    bottom: 18px;
+    z-index: 2147482000;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    height: 34px;
+    padding: 0 14px;
+    border-radius: 18px;
+    background: #543C9E;
+    color: #fff;
+    font: 500 12px/1 -apple-system, "Microsoft YaHei", "PingFang SC", sans-serif;
+    letter-spacing: .02em;
+    text-decoration: none;
+    box-shadow: 0 4px 16px rgba(54, 39, 107, .22);
+  }
+  #forge-wb-back:hover { background: #6648BE; color: #fff; }
+  #forge-wb-back svg { width: 13px; height: 13px; flex: none; }
+  @media (prefers-reduced-motion: reduce) {
+    #forge-wb-boot .f-bar i { animation: none; width: 100%; opacity: .5; }
+  }
+</style>
+
+<div id="forge-wb-boot" aria-live="polite">
+  <img class="f-logo" src="data:image/png;base64,__FORGE_MARK_B64__" alt="" />
+  <div class="f-name">智途</div>
+  <div class="f-rule"></div>
+  <div class="f-status">正在进入标注工作台</div>
+  <div class="f-bar"><i></i></div>
+</div>
+
+<style id="forge-ls-role-css">
+  /* 受限账号（标注员）导出入口由脚本打标记，这里只管隐藏方式。 */
+  [data-forge-locked="1"] { display: none !important; }
+</style>
+
+{# FORGE 角色标记 #}
+{% comment %}
+  来自 core/forge_sso.py 写入的 Django session。非 SSO 登录（LS 原生管理员 /
+  服务账号）没有这个键，yesno 第三参数给 false，因此不会被误判成受限账号。
+  前端只用它藏入口，服务端中间件才是安全边界。
+  ★ 这里必须用 {% comment %}，不能用 {# … #}：Django 的 {# #} 只支持单行，
+  跨行会被当成普通文本原样输出到页面上（实测每页顶部都露出整段注释）。
+{% endcomment %}
+<script nonce="{{request.csp_nonce}}" id="forge-ls-role-js">
+(function () {
+  var restricted = {{ request.session.forge_ls_restricted|yesno:"true,false,false" }};
+  window.FORGE_LS_RESTRICTED = restricted;
+  if (!restricted) return;
+
+  // 服务端 ForgeSsoMiddleware 已经对建项目/导入类接口与成员/导出/设置面
+  // 一律 403/404，这里只是别让标注员对着一个点了必然失败的按钮反复点。
+  // 宁可多藏，不能漏藏。
+  // ★ 新增规则尽量走 href 精确匹配：TEXT_TEST 只收多字词（项目设置/导出
+  //   数据/邀请成员…），不收裸词「设置/导出/成员/组织」—— 标注控件的
+  //   选项按钮也可能是这些词（医疗标注里「组织」=tissue），误藏等于
+  //   改坏标注界面。按钮没有 href 的，点了有服务端 403 兜底。
+  var HREF_TEST = /\/projects\/(create|new)(\/|$)|\/data\/(import|export)|\/import(\/|$)|\/projects\/\d+\/settings(\/|$)|^\/(organization|people|models)(\/|$)|^\/projects\/?$/;
+  var TEXT_TEST = /^(创建项目|新建项目|导入数据|导入|添加数据|上传数据|连接云存储|项目设置|导出数据|邀请成员|添加成员|Create Project|Create project|Import|Import Data|Import data|Add Data|Upload Data|Cloud Storage|Project Settings|Export Data|Invite Members|Add Members)$/;
+
+  function sweep() {
+    var nodes = document.querySelectorAll(
+      'a[href], button, [role="button"], [data-testid*="create-project"], [data-testid*="import"]'
+    );
+    for (var i = 0; i < nodes.length; i++) {
+      var el = nodes[i];
+      if (el.getAttribute("data-forge-locked") === "1") continue;
+      var hit = false;
+      var href = el.getAttribute("href") || "";
+      if (href && HREF_TEST.test(href)) hit = true;
+      if (!hit) {
+        var label = (el.textContent || "").replace(/\s+/g, " ").trim();
+        if (label && label.length <= 12 && TEXT_TEST.test(label)) hit = true;
+      }
+      if (hit) el.setAttribute("data-forge-locked", "1");
+    }
+  }
+
+  function start() {
+    sweep();
+    var mo = new MutationObserver(function () { sweep(); });
+    mo.observe(document.body, { childList: true, subtree: true });
+    // React 路由切换后按钮会重建，MutationObserver 已覆盖；这里再兜两次
+    // 慢加载，避免首屏 hydrate 晚于观察器启动的边角情况。
+    window.setTimeout(sweep, 1200);
+    window.setTimeout(sweep, 3500);
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", start);
+  } else {
+    start();
+  }
+})();
+</script>
+
+<script nonce="{{request.csp_nonce}}" id="forge-wb-shell-js">
+(function () {
+  var PLATFORM_URL = "__FORGE_PLATFORM_URL__";
+  var boot = document.getElementById("forge-wb-boot");
+  var done = false;
+  var scheduled = false;
+  var startedAt = Date.now();
+  var MIN_VISIBLE_MS = 900;
+
+  // 保证品牌启动态至少停留 800ms。旧实现只要 #root 里出现任何子节点就立刻撤，
+  // 结果用户根本看不到换过的加载画面，还是瞥见 LS 原版 spinner。
+  function finish() {
+    if (done || scheduled || !boot) return;
+    scheduled = true;
+    var wait = Math.max(0, MIN_VISIBLE_MS - (Date.now() - startedAt));
+    window.setTimeout(function () {
+      if (done || !boot) return;
+      done = true;
+      boot.className = "is-done";
+      window.setTimeout(function () {
+        if (boot && boot.parentNode) boot.parentNode.removeChild(boot);
+      }, 400);
+    }, wait);
+  }
+
+  // 必须等**真正的业务界面**出现才撤遮罩。旧实现用 `[class*='lsf-'], #root > *`
+  // 判定，加载阶段只要有一个 lsf-* 节点（正是那只动物 spinner）就算完成，
+  // 于是遮罩先撤、动物随后露出来。现在只认标注/数据管理/项目列表这些主视图。
+  // 账号设置这类页面没有标注主视图，原来永远匹配不上，
+  // 只能干等 12 秒兜底 —— 用户看到的就是「点自定义一直在加载」。
+  var LIGHT_PAGES = /^\/user\/account(\/|$)|^\/user\/login/;
+  function appReady() {
+    if (LIGHT_PAGES.test(location.pathname)) {
+      // 这类页面很轻，外壳里出现内容就算好了（别等 lsf-* 主视图）
+      var wrap = document.querySelector(".app-wrapper, #root");
+      return !!(wrap && wrap.children.length);
+    }
+    return document.querySelector(
+      ".lsf-main-view, .lsf-datamanager, .lsf-label-stream, " +
+      ".lsf-projects-page, [class*='empty-projects-page']"
+    );
+  }
+  var ticks = 0;
+  var timer = window.setInterval(function () {
+    ticks += 1;
+    if (appReady() || ticks > 150) { window.clearInterval(timer); finish(); }
+  }, 80);
+  window.addEventListener("load", function () {
+    window.setTimeout(function () { if (appReady()) finish(); }, 260);
+  });
+  window.setTimeout(finish, 12000);
+
+  // 返回平台按钮：整页进入后没有平台侧栏，这里是唯一回路。
+  function addBack() {
+    if (document.getElementById("forge-wb-back")) return;
+    var a = document.createElement("a");
+    a.id = "forge-wb-back";
+    a.href = PLATFORM_URL;
+    a.setAttribute("aria-label", "返回主工作台");
+    a.innerHTML = '<svg viewBox="0 0 16 16" fill="none" aria-hidden="true">' +
+      '<path d="M10 3L5 8l5 5" stroke="currentColor" stroke-width="1.6" ' +
+      'stroke-linecap="round" stroke-linejoin="round"/></svg><span>返回主工作台</span>';
+    document.body.appendChild(a);
+  }
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", addBack);
+  } else {
+    addBack();
+  }
+})();
+</script>

@@ -1,0 +1,63 @@
+# ============================================================================
+# FORGE 统一入口 —— 纯 IP / 内网部署模板（Caddyfile.ip）
+# ----------------------------------------------------------------------------
+# 由 install.sh 在未配置 DOMAIN 时复制为 caddy/Caddyfile。
+# 无域名、无 HTTPS：平台在 http://<服务器IP>，Label Studio 直接走
+# http://<服务器IP>:8100（由 compose 的端口映射对外，不经 Caddy）。
+#
+# ⚠️ 明文传输。口令会以 HTTP 明文过网 —— 只适合受控内网。
+#   一定要上公网就配域名换用 Caddyfile.domain，或者在防火墙上把
+#   80/8100 限制到办公网段（下面留了网段限制的写法注释）。
+#
+# upstream 写 compose 服务名，不是 127.0.0.1。
+# ============================================================================
+
+{
+	admin off
+}
+
+:80 {
+	encode zstd gzip
+
+	# 中间层 API：不缓存，保留真实 IP 供审计
+	handle /api/* {
+		reverse_proxy orchestrator:8300 {
+			header_up X-Forwarded-For {remote_host}
+			header_up X-Real-IP {remote_host}
+		}
+	}
+
+	handle /healthz {
+		reverse_proxy orchestrator:8300
+	}
+
+	# 前端静态资源
+	handle {
+		reverse_proxy web:3000
+	}
+
+	header {
+		X-Content-Type-Options nosniff
+		X-Frame-Options SAMEORIGIN
+		Referrer-Policy strict-origin-when-cross-origin
+		Content-Security-Policy "frame-ancestors 'self'"
+		-Server
+	}
+
+	log {
+		output file /var/log/caddy/forge.log
+		format json
+	}
+}
+
+# ---------------------------------------------------------------------------
+# 内网加固（可选）：只允许办公网段访问认证接口。
+# 反代层做网段限制比在应用里判断 X-Forwarded-For 可靠得多——后者可被伪造。
+#
+#   @auth path /api/v1/auth/* /api/v1/admin/*
+#   @intranet remote_ip 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16
+#   handle @auth {
+#       reverse_proxy @intranet orchestrator:8300
+#       respond "forbidden" 403
+#   }
+# ---------------------------------------------------------------------------

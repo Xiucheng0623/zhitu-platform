@@ -1,0 +1,115 @@
+/* ============================================================================
+   FORGE · Label Studio 登录页品牌覆盖
+   ----------------------------------------------------------------------------
+   这个文件不是被 Django 直接加载的，而是由 apply_brand.py 读进来、内联进
+   users/templates/users/new-ui/user_base.html 的 <style id="forge-brand"> 里。
+
+   为什么不直接改 core/static/css/login.css：
+   Django 用的是 ManifestStaticFilesStorage，模板里 {% static 'css/login.css' %}
+   会被改写成 login.f115716e9a7c.css（带内容哈希）。改源文件不会生效，
+   改哈希文件在 pip 重装后又全部消失。模板是运行时读取的，内联样式最稳。
+
+   底部的装饰图占位符（ORNAMENT 标记）会被替换成 login-ornament.svg 的 base64
+   data URI，这样也不依赖 static 目录下的 login-bg.svg（原文件是橙/粉配色）。
+   ============================================================================ */
+
+.login_page_new_ui .left {
+  background: linear-gradient(
+    109.47deg,
+    rgba(122, 92, 214, 0.13) 0%,
+    rgba(122, 92, 214, 0.055) 51.56%,
+    rgba(250, 249, 247, 0) 100%
+  ) !important;
+}
+
+/* 旧版这里挂了一张带四角取样框的装饰图（FORGE 母题）。
+   品牌换成智途后那套方框语言已经作废，不再借鉴，直接留白。 */
+.login_page_new_ui .left:after {
+  background-image: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+/* 原样式把 .ls-logo 固定成 414x64，而我们的字标是 176x44（比例 4:1）。
+   固定宽高会留大片空白，这里改成按高度缩放、宽度自适应。 */
+.login_page_new_ui .ls-logo {
+  width: auto !important;
+  height: 72px !important;
+}
+
+.login_page_new_ui .left h3 {
+  max-width: 24em;
+  opacity: 0.76;
+}
+
+/* 原样式 .left .by 是 position:absolute; bottom:60px; left:60px; flex-direction:column，
+   署名会贴在左下角。这里改成整行居中，并让它与右下角装饰图错开。 */
+.login_page_new_ui .left .by.forge-by {
+  left: 0;
+  right: 0;
+  bottom: 46px;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-neutral-content-subtle, currentColor);
+  opacity: 0.66;
+}
+
+.login_page_new_ui .left .by.forge-by:before {
+  content: "";
+  width: 22px;
+  height: 2px;
+  border-radius: 1px;
+  background: #7a5cd6;
+}
+
+.login_page_new_ui .login-button {
+  background: #7a5cd6 !important;
+  border-color: #7a5cd6 !important;
+  color: #ffffff !important;
+}
+
+.login_page_new_ui .login-button:hover {
+  background: #6648be !important;
+  border-color: #6648be !important;
+}
+
+.login_page_new_ui .text-wrapper a,
+.login_page_new_ui .toggle a.active {
+  color: #7a5cd6 !important;
+}
+
+.login_page_new_ui .lsf-input-ls:focus {
+  border-color: #7a5cd6 !important;
+  box-shadow: 0 0 0 2px rgba(122, 92, 214, 0.18) !important;
+}
+
+/* ---------------------------------------------------------------------------
+   复选框。踩过两次坑，记下来别再走回头路：
+   1. 写 `accent-color` 没用 —— 实测 getComputedStyle().accentColor 已经是铜色，
+      但截图取色仍是系统蓝 rgb(97,122,218)。
+   2. 真正的原因：`<input type="checkbox">` 被 LS 设成 display:none，
+      方框是 `.form-group label::before` 用 `padding:10px` 画出来的，
+      勾选态由 `.form-group input:checked + label::before { background: var(--primary_link) }`
+      上色。所以改 input 的任何属性都是打空靶，必须改 label 的伪元素和这个变量。
+   --------------------------------------------------------------------------- */
+.login_page_new_ui {
+  --primary_link: #7a5cd6;
+}
+
+.login_page_new_ui .form-group label::before {
+  border-color: #c9c4bc !important;
+  border-radius: 3px !important;
+}
+
+.login_page_new_ui .form-group input:checked + label::before {
+  background: #7a5cd6 !important;
+  border-color: #7a5cd6 !important;
+}

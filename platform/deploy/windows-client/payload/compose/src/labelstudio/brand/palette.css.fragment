@@ -1,0 +1,21 @@
+/* ============================================================================
+   智途 · 把 Label Studio React 前端的"主色阶"整体换成紫罗兰
+   ----------------------------------------------------------------------------
+   杠杆是 CSS 变量：LS 前端所有强调色都来自 --color-grape-000 … 950 这组色阶。
+   只替换这 11 个值，整个前端的强调色就变紫，不需要重编译编译产物。
+   加 !important 是因为 LS 调色板可能在 [data-color-scheme] 作用域里定义。
+   ============================================================================ */
+
+:root {
+  --color-grape-000: #f8f5fd !important;
+  --color-grape-100: #ede7fa !important;
+  --color-grape-200: #d9cff4 !important;
+  --color-grape-300: #bda8f2 !important;
+  --color-grape-400: #9b82e8 !important;
+  --color-grape-500: #7a5cd6 !important;
+  --color-grape-600: #6648be !important;
+  --color-grape-700: #543c9e !important;
+  --color-grape-800: #3f2c78 !important;
+  --color-grape-900: #2e2059 !important;
+  --color-grape-950: #1b1440 !important;
+}

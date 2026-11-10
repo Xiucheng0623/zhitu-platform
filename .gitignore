@@ -1,0 +1,44 @@
+# ---- 依赖（体积大、可重装） ----
+node_modules/
+.venv/
+venv/
+**/__pycache__/
+*.pyc
+*.pyo
+
+# ---- 构建产物（可重建） ----
+platform/web/dist/
+platform/web/dist-sso/
+platform/deploy/**/build/
+platform/deploy/**/dist/
+platform/deploy/windows-native/payload/
+platform/deploy/**/release/
+platform/deploy/dist/
+platform/_shots*/
+platform/deploy/windows-native/_shots*/
+_handoff/
+# 临时脚本与抓取下来的第三方产物（tools/.tmp 里是调试残留）
+**/.tmp/
+
+# ---- 二进制交付物：GitHub 单文件 100MB 上限，离线包 366MB 永远不该进仓库 ----
+*.zip
+*.exe
+*.msi
+*.7z
+*.tar
+*.tar.gz
+
+# ---- 本机私有配置（含本机地址/口令，只留示例与生产默认） ----
+platform/web/.env.local
+.env
+.env.local
+*.local
+**/native.json
+
+# ---- 运行时产物 ----
+logs/
+*.log
+*.db
+*.db-wal
+*.db-shm
+*.sqlite3

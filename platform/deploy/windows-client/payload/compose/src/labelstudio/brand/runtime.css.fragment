@@ -1,0 +1,108 @@
+/* ============================================================================
+   FORGE · 运行时插入元素的样式（由 ls-runtime-brand.js 创建的那些节点）
+   ----------------------------------------------------------------------------
+   这些 class 只出现在 base.html 注入的脚本里，不用在模板里写死，
+   所以集中放在这里，和 palette.css.fragment 一起内联进 <head>。
+   ============================================================================ */
+
+.forge-brand-logo {
+  display: inline-flex;
+  align-items: center;
+}
+
+/* 数据管理空态：把 Label Studio 的上传箭头图标换成 FORGE 方版标记。
+   容器本身是 div.bg-primary-emphasis.rounded-full（铜色底的圆形），
+   标记用 currentColor，所以自动跟随图标前景色。 */
+.forge-empty-mark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+}
+
+.forge-empty-mark svg {
+  display: block;
+  width: 40px;
+  height: 40px;
+}
+
+/* 右侧「区域」面板空态的品牌署名 */
+.forge-panel-sign {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(122, 92, 214, 0.28);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #7a5cd6;
+  opacity: 0.72;
+}
+
+/* ----------------------------------------------------------------------------
+   左侧抽屉菜单底部的品牌块
+   ----------------------------------------------------------------------------
+   菜单结构（实测 LS 1.23.2）：
+       ul.lsf-main-menu
+         ├ li              首页
+         ├ li              项目
+         ├ li              组织
+         ├ li.lsf-main-menu__spacer     ← 弹性空白，把下面的推到底部
+         ├ li              GitHub       ← 已由脚本移除
+         ├ li.lsf-main-menu__divider
+         └ li              Pin menu
+   spacer 是 flex-grow，所以品牌块插在它后面就会贴在列表底部。
+   标题文字用 currentColor 跟随主题，标记固定工业铜，不做强调色。
+   ---------------------------------------------------------------------------- */
+.forge-menu-brand {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 2px 12px 8px;
+  padding: 10px 8px;
+  border-top: 1px solid rgba(122, 92, 214, 0.22);
+  opacity: 0.9;
+  user-select: none;
+  pointer-events: none;   /* 纯装饰，别抢菜单的点击 */
+}
+
+.forge-menu-brand svg {
+  display: block;
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+  color: #7a5cd6;
+}
+
+.forge-menu-brand__text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+  min-width: 0;
+}
+
+.forge-menu-brand__name {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  color: currentColor;
+}
+
+.forge-menu-brand__meta {
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: currentColor;
+  opacity: 0.55;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* LS 自己在菜单底部有一行 <a class="lsf-current-version">v1.23.2</a>。
+   我们的品牌块已经把版本号写进「标注引擎 vX.Y.Z」，两行并排就是重复，
+   所以把这行藏掉。节点保留在 DOM 里 —— 运行时脚本还要从它读版本号，
+   删掉的话每次重渲染就取不到了。 */
+ul.lsf-main-menu .lsf-current-version {
+  display: none !important;
+}

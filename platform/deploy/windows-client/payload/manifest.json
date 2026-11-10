@@ -1,0 +1,35 @@
+{
+  "app": "智途",
+  "version": "20261108",
+  "built_at": "2026-11-08 20:39:40",
+  "expected_images": [
+    "caddy:2.8",
+    "zhitu/web:20261108",
+    "zhitu/orchestrator:20261108",
+    "postgres:17-alpine",
+    "zhitu/labelstudio:20261108",
+    "postgres:16-alpine",
+    "minio/minio:RELEASE.2024-10-13T13-34-11Z",
+    "minio/mc:RELEASE.2024-10-08T09-37-26Z"
+  ],
+  "images": [],
+  "migrations": 11,
+  "build_sources": {
+    "included": true,
+    "files": 98,
+    "mb": 1.44,
+    "parts": [
+      "docker/*.Dockerfile",
+      "src/web (57 文件)",
+      "src/orchestrator (23 文件)",
+      "src/labelstudio/brand (18 文件)"
+    ]
+  },
+  "caddy": "caddy/Caddyfile（纯 IP 模板）",
+  "notes": [
+    "build_sources 存在 → 可以在能出外网的服务器上现场构建（联网安装）。",
+    "images/*.tar 存在 → 可以完全离线 docker load（离线安装）。",
+    "两者都没有 = 装不成；安装程序第 02 步会直接说明缺哪一块。",
+    "docker/*.deb 可选：放进 docker-ce 相关 deb 后，安装程序在 WSL 里离线装引擎。"
+  ]
+}

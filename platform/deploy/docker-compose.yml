@@ -1,0 +1,300 @@
+# ============================================================================
+# FORGE · 智途 AI 数据生产平台 —— 服务器一键部署编排
+# ----------------------------------------------------------------------------
+# 用法（详见 README.md）：
+#   cp .env.example .env      # 或直接跑 ./install.sh，它会代填随机密钥
+#   docker compose up -d --build
+#
+# 端口约定（刻意避开 8080 / 3001，这两个是常见占用端口）：
+#   80    caddy        平台入口（前端静态 + /api 反代）        ← 对外
+#   443   caddy        HTTPS（DOMAIN 配置后自动签发）          ← 对外
+#   8100  labelstudio  标注工作台（浏览器直达 + SSO 回跳）      ← 对外
+#   8300  orchestrator 业务中间层（仅容器内）
+#   3000  web          前端静态站点（仅容器内）
+#   5432  orchdb/lsdb  PostgreSQL（仅容器内）
+#   9000  minio        对象存储（仅容器内）
+#
+# 启动顺序由 healthcheck / service_completed_successfully 串起来，不靠 sleep：
+#   orchdb(healthy) → migrate(completed) → orchestrator
+#   lsdb(healthy)   → labelstudio
+#   minio(healthy)  → minio-init(completed)
+#
+# 与旧版的差异（2026-11）：
+#   1. 迁移只跑结构 + 权限 + 引导，**不灌任何演示数据**。
+#      原 003_seed_verify / 004_rls_test / 008_finance_verify / 009_backfill_finance
+#      是验收夹具，已移到 migrations/verification/，需要时显式执行。
+#   2. labelstudio 由 docker/labelstudio.Dockerfile 构建，构建期打上
+#      智途品牌补丁与单点登录中间件（否则进 LS 就是 Label Studio 原版）。
+#   3. DISABLE_SIGNUP_WITHOUT_LINK（不是 LABEL_STUDIO_ 前缀，写错不生效）。
+#   4. LS 监听 8100，不占 8080。
+# ============================================================================
+
+name: forge
+
+x-restart: &restart
+  restart: unless-stopped
+
+services:
+  # --------------------------------------------------------------- 统一入口
+  caddy:
+    <<: *restart
+    image: caddy:2.8
+    ports:
+      - "${HTTP_PORT:-80}:80"
+      - "${HTTPS_PORT:-443}:443"
+    environment:
+      DOMAIN: ${DOMAIN:-}
+      ACME_EMAIL: ${ACME_EMAIL:-}
+    volumes:
+      # :z 是 SELinux 标签（RHEL / CentOS / Rocky / 麒麟 默认 enforcing）。
+      # 缺了它，bind mount 会被 SELinux 拒掉，caddy 起不来且只报 permission denied。
+      # 在非 SELinux 系统上这个选项是空操作，所以不需要按发行版分支。
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro,z
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      web:
+        condition: service_started
+      orchestrator:
+        condition: service_started
+
+  # ------------------------------------------------- 前端（构建 + 静态托管）
+  web:
+    <<: *restart
+    # 显式镜像名：离线交付必须靠 docker save 把镜像带过去，而 build-only 的
+    # 服务在 compose 里没有稳定镜像名（默认是 <项目>-<服务>，随目录名漂移），
+    # 打包脚本无从引用。写死后 build 会把标签打上，save/load 才能在离线机器
+    # 里对上；ZHITU_TAG 让同一份 compose 既能开发（dev）也能交付（版本号）。
+    image: zhitu/web:${ZHITU_TAG:-dev}
+    build:
+      context: .
+      dockerfile: docker/web.Dockerfile
+      args:
+        VITE_API_BASE: /api
+        VITE_PLATFORM_URL: ${PLATFORM_PUBLIC_URL}
+        NPM_REGISTRY: ${NPM_REGISTRY:-https://registry.npmmirror.com}
+    expose: ["3000"]
+
+  # --------------------------------------------------------- 业务中间层
+  orchestrator:
+    <<: *restart
+    image: zhitu/orchestrator:${ZHITU_TAG:-dev}
+    build:
+      context: .
+      dockerfile: docker/orchestrator.Dockerfile
+      args:
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://mirrors.aliyun.com/pypi/simple/}
+    expose: ["8300"]
+    environment:
+      FORGE_DB_DSN: postgresql://forge_app:${ORCH_APP_PASSWORD}@orchdb:5432/forge
+      FORGE_DB_POOL_MIN: "2"
+      FORGE_DB_POOL_MAX: "12"
+      FORGE_AUTH_MODE: ${FORGE_AUTH_MODE:-native}
+      FORGE_DEFAULT_TENANT: ent_forge
+      FORGE_JWT_SECRET: ${FORGE_JWT_SECRET}
+      FORGE_JWT_ISSUER: forge-orchestrator
+      FORGE_JWT_AUDIENCE: forge-platform
+      FORGE_JWT_TTL_MIN: ${FORGE_JWT_TTL_MIN:-480}
+      FORGE_LOGIN_MAX_FAILURES: "5"
+      FORGE_LOGIN_LOCK_MIN: "15"
+      FORGE_PASSWORD_MIN_LEN: "8"
+      FORGE_CORS_ORIGINS: ${PLATFORM_PUBLIC_URL}
+      # 标注页（LS 域）需要跨源回调平台：右侧规范侧栏取内容、单题耗时回传，
+      # 都打这个地址。必须是**浏览器可达**的地址（Caddy 的 /api 反代入口），
+      # 不能填 http://orchestrator:8300 —— 那是容器内地址，浏览器解析不了。
+      # 不填的后果：标注页照常能用，但规范侧栏永远空、耗时一条也不落库，
+      # 且不会报错（前端只把它当"平台没配"处理），排查起来非常隐蔽。
+      FORGE_PLATFORM_API_BASE: ${PLATFORM_PUBLIC_URL}
+      # ---- 外部 IdP（FORGE_AUTH_MODE=jwt 时才生效）----
+      FORGE_OIDC_ISSUER: ${FORGE_OIDC_ISSUER:-}
+      FORGE_OIDC_AUDIENCE: ${FORGE_OIDC_AUDIENCE:-}
+      FORGE_OIDC_JWKS_URL: ${FORGE_OIDC_JWKS_URL:-}
+      FORGE_OIDC_HS256_SECRET: ${FORGE_OIDC_HS256_SECRET:-}
+      # ---- 企业统一登录 SSO（可选，四项全填才启用）----
+      FORGE_SSO_ISSUER: ${FORGE_SSO_ISSUER:-}
+      FORGE_SSO_CLIENT_ID: ${FORGE_SSO_CLIENT_ID:-}
+      FORGE_SSO_CLIENT_SECRET: ${FORGE_SSO_CLIENT_SECRET:-}
+      FORGE_SSO_REDIRECT_URI: ${FORGE_SSO_REDIRECT_URI:-}
+      FORGE_SSO_PROVIDER: ${FORGE_SSO_PROVIDER:-oidc}
+      FORGE_SSO_SCOPE: ${FORGE_SSO_SCOPE:-openid profile email phone}
+      FORGE_SSO_CLAIM_SUB: ${FORGE_SSO_CLAIM_SUB:-sub}
+      FORGE_SSO_CLAIM_PHONE: ${FORGE_SSO_CLAIM_PHONE:-phone_number}
+      FORGE_SSO_CLAIM_EMAIL: ${FORGE_SSO_CLAIM_EMAIL:-email}
+      FORGE_SSO_CLAIM_NAME: ${FORGE_SSO_CLAIM_NAME:-name}
+      FORGE_SSO_ALLOW_JIT: ${FORGE_SSO_ALLOW_JIT:-true}
+      FORGE_SSO_JIT_ROLE: ${FORGE_SSO_JIT_ROLE:-annotator}
+      FORGE_SSO_FRONTEND_REDIRECT: ${FORGE_SSO_FRONTEND_REDIRECT:-/#/sso/callback}
+      FORGE_SSO_STATE_TTL_S: ${FORGE_SSO_STATE_TTL_S:-600}
+      # 浏览器可达的 LS 地址（SSO 跳转用）与容器内调用地址分开
+      FORGE_LS_BASE_URL: http://labelstudio:8100
+      FORGE_LS_PUBLIC_BASE_URL: ${LS_PUBLIC_URL}
+      FORGE_LS_SSO_SECRET: ${LS_SSO_SECRET}
+      # 1.23 的 access token 只有 5 分钟，必须给 refresh 让它自动续
+      FORGE_LS_REFRESH_TOKEN: ${LS_REFRESH_TOKEN:-}
+      FORGE_LS_WEBHOOK_SECRET: ${LS_WEBHOOK_SECRET}
+      # LS 回调平台的地址 —— 必须是**容器内可达**地址，不是浏览器地址。
+      # 漏配的后果不是报错而是静默失效：标注员在 LS 里提交，平台毫无反应，
+      # 进度只能靠人在批次页点「同步」，两边很快就对不上。
+      FORGE_LS_CALLBACK_URL: http://orchestrator:8300/api/v1/webhooks/labelstudio
+      # 定时对账（秒）。webhook 是"推送"，推的路上任何一环坏了都不会报错，
+      # 平台只是安静地停在旧数字上；定时拉取是兜底：0 = 关闭（不建议）。
+      FORGE_LS_SYNC_INTERVAL_S: ${LS_SYNC_INTERVAL_S:-300}
+      FORGE_HTTP_TRUST_ENV: "false"
+      FORGE_S3_ENDPOINT: http://minio:9000
+      FORGE_S3_BUCKET: ${S3_BUCKET:-forge-data}
+      FORGE_S3_REGION: us-east-1
+      MINIO_ROOT_USER: ${MINIO_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_PASSWORD}
+    depends_on:
+      orchdb:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+      minio:
+        condition: service_healthy
+
+  # ------------------------------------------------------------- 迁移执行器
+  # 一次性容器：建角色 → 结构 → RLS → 部署引导 → 财务域 → 采集域 → RLS 扩展
+  #             → 身份认证 → SSO 表。全部幂等，重复 up 不会叠加。
+  # 不跑 verification/ 下的验收脚本（那些会灌演示数据）。
+  migrate:
+    image: postgres:17-alpine
+    environment:
+      PGHOST: orchdb
+      PGUSER: ${ORCH_DB_ADMIN:-forge_admin}
+      PGPASSWORD: ${ORCH_DB_PASSWORD}
+      PGDATABASE: forge
+      APP_PASSWORD: ${ORCH_APP_PASSWORD}
+    volumes:
+      # :z 同 caddy 那条：SELinux enforcing 的系统上不加就挂不进去，
+      # 表现是迁移容器起来就报 permission denied，表一个都建不出来。
+      - ./migrations:/migrations:ro,z
+    entrypoint: ["/bin/sh", "-lc"]
+    command:
+      - |
+        set -e
+        echo "[migrate] 等待数据库..."
+        until pg_isready -q; do sleep 1; done
+        for f in 000_roles 001_schema 002_rls 003_bootstrap \
+                 005_finance 006_collection 007_rls_ext \
+                 010_identity 011_sso 012_member_link 013_ux_enhance; do
+          echo "[migrate] -> $$f.sql"
+          psql -v ON_ERROR_STOP=1 -v app_password="$$APP_PASSWORD" -f /migrations/$$f.sql
+        done
+        echo "[migrate] 完成（无演示数据）"
+    depends_on:
+      orchdb:
+        condition: service_healthy
+    restart: "no"
+
+  orchdb:
+    <<: *restart
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: ${ORCH_DB_ADMIN:-forge_admin}
+      POSTGRES_PASSWORD: ${ORCH_DB_PASSWORD}
+      POSTGRES_DB: forge
+      POSTGRES_INITDB_ARGS: "--data-checksums"
+    volumes: [orchdb_data:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${ORCH_DB_ADMIN:-forge_admin} -d forge"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  # ---------------------------------------------------- 标注引擎（含品牌补丁）
+  labelstudio:
+    <<: *restart
+    image: zhitu/labelstudio:${ZHITU_TAG:-dev}
+    build:
+      context: .
+      dockerfile: docker/labelstudio.Dockerfile
+    # 8100：既给浏览器直达（IP 部署），也给 caddy 反代（域名部署）
+    ports: ["${LS_PORT:-8100}:8100"]
+    environment:
+      # ★ LS 1.23.2 读的数据库变量是 POSTGRE_*（中间没有 SQL 两个字母）。
+      # 写成 POSTGRESQL_* 会全部落空，LS 转头去连 localhost:5432 的
+      # postgres/postgres —— 容器起不来或连错库，日志还不明说。已实测
+      # 对照 venv 里 core/settings/base.py 的 get_env('POSTGRE_USER', ...)。
+      DJANGO_DB: postgresql
+      POSTGRE_HOST: lsdb
+      POSTGRE_PORT: "5432"
+      POSTGRE_NAME: labelstudio
+      POSTGRE_USER: ls
+      POSTGRE_PASSWORD: ${LS_DB_PASSWORD}
+      LABEL_STUDIO_HOST: ${LS_PUBLIC_URL}
+      # 关键：没有 LABEL_STUDIO_ 前缀，写错等于注册页全开
+      DISABLE_SIGNUP_WITHOUT_LINK: "true"
+      LABEL_STUDIO_USERNAME: ${LS_ADMIN_EMAIL}
+      LABEL_STUDIO_PASSWORD: ${LS_ADMIN_PASSWORD}
+      SECRET_KEY: ${LS_SECRET_KEY}
+      # 单点登录共享密钥（与 orchestrator 一致），平台 → LS 换票用
+      FORGE_LS_SSO_SECRET: ${LS_SSO_SECRET}
+      # 「返回主工作台」按钮的目标
+      FORGE_PLATFORM_URL: ${PLATFORM_PUBLIC_URL}
+      # 1.23 的 SSRF 防护默认禁私网，会拦住 webhook 回调与 minio 取图
+      SSRF_PROTECTION_ENABLED: "true"
+      USE_DEFAULT_BANNED_SUBNETS: "false"
+      USER_ADDITIONAL_BANNED_SUBNETS: "169.254.0.0/16,fe80::/10"
+      CSRF_TRUSTED_ORIGINS: ${LS_PUBLIC_URL}
+    volumes: [ls_data:/label-studio/data]
+    depends_on:
+      lsdb:
+        condition: service_healthy
+
+  lsdb:
+    <<: *restart
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ls
+      POSTGRES_PASSWORD: ${LS_DB_PASSWORD}
+      POSTGRES_DB: labelstudio
+    volumes: [lsdb_data:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ls -d labelstudio"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  # ------------------------------------------------------------- 对象存储
+  minio:
+    <<: *restart
+    image: minio/minio:RELEASE.2024-10-13T13-34-11Z
+    command: server /data
+    environment:
+      MINIO_ROOT_USER: ${MINIO_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_PASSWORD}
+    volumes: [minio_data:/data]
+    expose: ["9000"]
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  minio-init:
+    image: minio/mc:RELEASE.2024-10-08T09-37-26Z
+    environment:
+      MINIO_USER: ${MINIO_USER}
+      MINIO_PASSWORD: ${MINIO_PASSWORD}
+      S3_BUCKET: ${S3_BUCKET:-forge-data}
+    entrypoint: ["/bin/sh", "-lc"]
+    command:
+      - |
+        set -e
+        mc alias set local http://minio:9000 "$$MINIO_USER" "$$MINIO_PASSWORD"
+        mc mb --ignore-existing local/"$$S3_BUCKET"
+        mc anonymous set none local/"$$S3_BUCKET"
+        echo "[minio-init] bucket $$S3_BUCKET ready"
+    depends_on:
+      minio:
+        condition: service_healthy
+    restart: "no"
+
+volumes:
+  caddy_data: {}
+  caddy_config: {}
+  orchdb_data: {}
+  ls_data: {}
+  lsdb_data: {}
+  minio_data: {}

@@ -1,0 +1,91 @@
+# FORGE 统一入口（Windows 单机 / Linux 容器通用）
+# ---------------------------------------------------------------------------
+# 2026-11 起 ERPNext 已移除（docs/02 §9 ADR-001），入口只剩两个：
+#   https://{$DOMAIN}        平台前端（静态）+ /api → orchestrator:8300
+#   https://ls.{$DOMAIN}     Label Studio 原生标注界面（被平台 iframe 嵌入）
+#
+# 为什么必须要反代，而不是直接 8300 / 8080 对外：
+#   1. HTTPS 终结。手机号 + 密码走明文 HTTP，等于把全公司口令广播到局域网。
+#   2. 同源。前端与 API 同域后不必维护 CORS 白名单，也不会被浏览器的
+#      第三方 Cookie 策略掐掉。
+#   3. Label Studio 的 access token 只有 5 分钟，续期依赖 Cookie；
+#      Cookie 只在同站可靠，跨端口跨站会被拦。
+#
+# 内网无域名时：把站点地址改成 http://<服务器IP>，并接受明文传输风险；
+# 同时启用文件末尾的网段限制注释，至少把认证接口关在办公网内。
+
+{
+	email {$ACME_EMAIL:ops@example.cn}
+	# 内网自签 / 纯 HTTP 场景：注释掉上一行 email，并把站点地址改成 http://
+	admin off
+}
+
+{$DOMAIN} {
+	encode zstd gzip
+
+	# ---- 中间层 API：不缓存，保留真实 IP 供审计 ---------------------------
+	handle /api/* {
+		reverse_proxy 127.0.0.1:8300 {
+			header_up X-Forwarded-For {remote_host}
+			header_up X-Real-IP {remote_host}
+		}
+	}
+
+	handle /healthz {
+		reverse_proxy 127.0.0.1:8300
+	}
+
+	# ---- 前端静态资源：Windows 下 root 指向 web\dist 的绝对路径 ----------
+	handle {
+		root * {$WEB_ROOT:/srv/forge/web/dist}
+		try_files {path} /index.html
+		file_server
+	}
+
+	header {
+		X-Content-Type-Options nosniff
+		X-Frame-Options SAMEORIGIN
+		Referrer-Policy strict-origin-when-cross-origin
+		# 登录页含口令输入，禁止被任何第三方站点嵌套
+		Content-Security-Policy "frame-ancestors 'self'"
+		-Server
+	}
+
+	log {
+		output file {$LOG_DIR:/var/log/caddy/forge.log}
+		format json
+	}
+}
+
+# ---- Label Studio -----------------------------------------------------------
+# 必须允许平台域名 iframe 它，否则标注工作台是一片白板。
+# LS 自身会发 X-Frame-Options: SAMEORIGIN（ls.domain 视角下等于只允许自己），
+# 这里显式改写成「平台域名 + 自身」。
+ls.{$DOMAIN} {
+	encode zstd gzip
+
+	reverse_proxy 127.0.0.1:8080 {
+		header_up X-Forwarded-For {remote_host}
+		header_up X-Forwarded-Proto {scheme}
+		header_up Host {host}
+	}
+
+	header {
+		# 不要写成 *，那等于允许任意站点嵌套钓鱼
+		X-Frame-Options "ALLOW-FROM https://{$DOMAIN}"
+		Content-Security-Policy "frame-ancestors 'self' https://{$DOMAIN}"
+		-Server
+	}
+}
+
+# ---------------------------------------------------------------------------
+# 内网加固（可选）：只允许办公网段访问认证接口
+# ---------------------------------------------------------------------------
+# 反代层做网段限制比在应用里判断 X-Forwarded-For 可靠得多 —— 后者可被伪造。
+#
+#   @auth path /api/v1/auth/* /api/v1/admin/*
+#   @intranet remote_ip 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16
+#   handle @auth {
+#       reverse_proxy @intranet 127.0.0.1:8300
+#       respond "forbidden" 403
+#   }

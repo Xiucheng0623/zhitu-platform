@@ -1,0 +1,86 @@
+<!-- 智途 模板 · 网页作品质量评测（WebDev 人工 Filter）
+     2026-11 新增。证明这类需求不需要新页面：全部用 LS 原生标签拼装，
+     与 01~05 一样是「一份 XML 配置 + 一份 task.data」，走同一套渲染器、
+     同一套 result[] 收集、同一套 webhook 回流。
+
+     参照 LS 官方自带模板：
+       core/examples/html_website/config.xml          （Rate website：HyperText + Rating + Choices）
+       annotation_templates/chat/chat_llm_eval/config.yml（模型输出打分 + 理由）
+
+     数据契约（与需求文档一致）：
+       q_id              题号
+       prompt            原始题目，展示给评审员
+       response_a_dist   模型生成的网页作品，HTML 字符串或托管 URL
+
+     0–5 整数分用 Choices 而不是 Rating：Rating 是 1..N 星，表达不了 0 分；
+     Choices 可以精确给出六个离散档，且 required 强制必填。
+
+     ★ 2026-11 浏览器实测结论（别踩坑）：
+       HyperText 把 HTML 放进 sandbox="allow-same-origin allow-scripts
+       allow-presentation" 的 iframe，但**渲染前会剥掉 <script> 和 onclick 等
+       内联事件**。所以这里只是「视觉预览」：布局、配色、构图、材质能看，
+       JS 交互跑不起来。需求文档要求「点击新标签页全屏查看后测功能」，
+       正是对这一限制的正确规避 —— 功能测试必须在原始产物的独立页面做，
+       不能在标注界面里做。平台侧需要补的是一次性的通用能力
+       （原始 HTML 独立源 + sandbox CSP + 通用「新标签页打开」按钮），
+       不是给 WebDev 单独写页面。
+       本项目 maximum_annotations 必须设为 6（每题 5-6 人独立评审）。
+-->
+<View>
+  <!-- 左：题目 + 作品预览。HyperText 是 LS 的通用 HTML 渲染器 -->
+  <View style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px;">
+    <View style="padding: 8px 10px; border: 1px solid #E5E7EB; border-radius: 4px; background: #FAFAFB;">
+      <Header value="题号" size="6"/>
+      <Text name="qid" value="$q_id" />
+      <Header value="原始 prompt" size="5"/>
+      <Text name="prompt" value="$prompt" />
+    </View>
+    <View style="border: 1px solid #E5E7EB; border-radius: 4px; padding: 6px; min-height: 420px;">
+      <HyperText name="page" value="$response_a_dist" />
+    </View>
+  </View>
+
+  <!-- 右：通用表单控件，组合出评分维度 -->
+  <View style="width: 380px; flex: none; padding-left: 12px; display: flex; flex-direction: column; gap: 10px;">
+    <Header value="整体评分（0–5，整数）" size="4"/>
+    <Choices name="score" toName="page" choice="single" showInline="true" required="true">
+      <Choice value="0 - 不可用"/>
+      <Choice value="1 - 严重缺失"/>
+      <Choice value="2 - 部分实现"/>
+      <Choice value="3 - 基本合格"/>
+      <Choice value="4 - 完成度高"/>
+      <Choice value="5 - 优秀"/>
+    </Choices>
+
+    <Header value="1. 功能完整性与题意符合度" size="6"/>
+    <Choices name="function_check" toName="page" choice="multiple">
+      <Choice value="核心要求已实现"/>
+      <Choice value="主要流程可完成"/>
+      <Choice value="关键交互失效"/>
+      <Choice value="按钮无真实状态变化"/>
+      <Choice value="结果与状态错误"/>
+    </Choices>
+
+    <Header value="2. 美观度与视觉表现" size="6"/>
+    <Choices name="visual_check" toName="page" choice="single">
+      <Choice value="布局配色协调、有细节质感"/>
+      <Choice value="视觉普通但可用"/>
+      <Choice value="层次/间距/可读性有明显问题"/>
+      <Choice value="美观度无法判断"/>
+    </Choices>
+
+    <Header value="3. 细节与稳定性 / 渲染状态" size="6"/>
+    <Choices name="render_status" toName="page" choice="single" required="true">
+      <Choice value="正常渲染"/>
+      <Choice value="白屏"/>
+      <Choice value="空场景"/>
+      <Choice value="3D 未渲染"/>
+      <Choice value="主要资源加载失败"/>
+      <Choice value="缺产物"/>
+    </Choices>
+
+    <Header value="评审理由（≥20 字，须同时写功能与美观度）" size="6"/>
+    <TextArea name="reason" toName="page" rows="6" required="true"
+              placeholder="写出实际测到的关键功能表现，再写布局/配色/构图/材质/细节的一项具体优缺点。渲染失败须写明现象。"/>
+  </View>
+</View>
