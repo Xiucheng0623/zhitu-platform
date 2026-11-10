@@ -3,8 +3,16 @@
 面向数据标注外包协作的一体化平台：项目管理、人员与供应商、任务分配、标注作业、
 审核、结算，标注作业面直接复用 Label Studio 原生界面（不自研标注器）。
 
-交付形态是**一个 Windows 完整离线包**：拷到服务器，解压，双击 exe，全程本机完成，
-不需要联网、不需要 Docker、不需要预先安装 Python / PostgreSQL。
+部署有三条路，跑的是同一套 13 步逻辑（`platform/deploy/windows-native/src/zn_setup.py`）：
+
+| 装法 | 怎么装 | 缺什么 | 用时 |
+|---|---|---|---|
+| **纯源码装（推荐）** | `python install_from_source.py` | 只要一个 clone + Python 3.11–3.13 + 外网 | 25–45 分钟 |
+| 安装套件 | 24 MB zip → 双击 exe | 同 ①，另要一个 zip | 25–45 分钟 |
+| 完整离线包 | 366 MB zip → 双击 exe | 全程不联网 | 3–8 分钟 |
+
+推荐的那条不需要 exe、不需要离线包、不需要 Node、不需要 Docker：
+clone 下来一条命令，PostgreSQL / Label Studio / Caddy 现场下载。
 
 ## 目录
 
@@ -15,7 +23,7 @@ platform/
   labelstudio/brand/        Label Studio 品牌补丁 + SSO 中间件
   deploy/
     migrations/             数据库迁移（12 条，幂等；verification/ 是验收夹具，不进交付）
-    windows-native/         ★ 交付主线：13 步安装器 + 打包链
+    windows-native/         ★ 部署主线：install_from_source.py + 13 步安装器 + 打包链
     windows-client/         早期单文件 exe 形态（已被 windows-native 取代）
     windows-docker/         容器路线（需 WSL2 + 嵌套虚拟化，云主机常不可用，备选）
   tools/                    源码树自检（check_package.py）
@@ -45,7 +53,20 @@ cd platform/web && npm install && npm run dev    # http://127.0.0.1:9120
 python -m app.cli create-admin --phone 138xxxxxxxx --password '........'
 ```
 
-## 出交付包（Windows）
+## 装到服务器（Windows，推荐：源码直装）
+
+```bash
+git clone https://github.com/Xiucheng0623/zhitu-platform.git D:\zhitu-platform
+cd D:\zhitu-platform\platform\deploy\windows-native
+python install_from_source.py --plan     # 只打印要装到哪、跑哪 13 步，不动系统
+python install_from_source.py            # 真装（管理员终端），25–45 分钟
+```
+
+它现场跑 `make_payload.py` 组装载荷，再用 `ZHITU_PAYLOAD_DIR` 指给 13 步安装逻辑。
+`--dir` 换盘、`--no-download` 断网、`--build-web` 现场构建前端（通常用不到，
+`platform/web/dist` 已入库）。
+
+## 出 exe / 离线包（只有完全断网的服务器才需要）
 
 ```bash
 cd platform/web && npm run build                    # 前端产物 → web/dist
@@ -54,6 +75,7 @@ python make_payload.py                              # 收拢源码/迁移/品牌
 python verify_payload.py                            # 静态自检，期望 60/60
 python build_native.py --clean                      # 出两个 exe
 python make_offline_release.py                      # 完整离线包（约 6 分钟）
+python tools/make_install_kit.py                    # 只要 exe+payload 的精简套件（24 MB）
 ```
 
 `make_offline_release.py` 的暂存目录写死在 `D:/zhitu-offline-build`（pgsql / py-ls /

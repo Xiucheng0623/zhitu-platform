@@ -1472,6 +1472,7 @@ def auto_run(argv: List[str]) -> int:
     out("智途 · Windows 原生安装 %s" % time.strftime("%Y-%m-%d %H:%M:%S"))
     out("日志：%s" % out.path)
     host_ip, phone, name = "", "", "管理员"
+    app_dir, data_dir = C.DEFAULT_APP_DIR, C.DEFAULT_DATA_DIR
     for i, a in enumerate(argv):
         if a == "--host-ip" and i + 1 < len(argv):
             host_ip = argv[i + 1]
@@ -1479,7 +1480,14 @@ def auto_run(argv: List[str]) -> int:
             phone = argv[i + 1]
         if a == "--admin-name" and i + 1 < len(argv):
             name = argv[i + 1]
-    inst = Installer(out, host_ip=host_ip, admin_phone=phone, admin_name=name,
+        # 纯源码安装（install_from_source.py）会把安装目录传进来：
+        # 不传的话 C.DEFAULT_APP_DIR 写死 C:\Zhitu，源码装就没法换盘。
+        if a == "--app-dir" and i + 1 < len(argv):
+            app_dir = argv[i + 1]
+        if a == "--data-dir" and i + 1 < len(argv):
+            data_dir = argv[i + 1]
+    inst = Installer(out, app_dir=app_dir, data_dir=data_dir,
+                     host_ip=host_ip, admin_phone=phone, admin_name=name,
                      allow_download="--no-download" not in argv)
     results = run_steps(step_list(inst), out)
     report = write_report(inst, results, near=out.path)

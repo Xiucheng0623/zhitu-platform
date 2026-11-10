@@ -7,7 +7,11 @@ venv/
 *.pyo
 
 # ---- 构建产物（可重建） ----
-platform/web/dist/
+# platform/web/dist/ 例外：**必须入库**。
+# 服务器要「clone 下来自己装」，如果 dist 不在仓库里，就得在服务器上装 Node +
+# npm ci + vite build（500 MB 依赖 + npm 源在国内经常抽风）。dist 只有 536 KB，
+# 又是同源相对路径构建（不含任何本机地址），入库换掉整个 Node 依赖，值。
+# 代价：改过前端源码后，记得本机 `cd platform/web && npm run build` 再提交 dist。
 platform/web/dist-sso/
 platform/deploy/**/build/
 platform/deploy/**/dist/

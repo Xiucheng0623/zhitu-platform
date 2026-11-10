@@ -1,20 +1,51 @@
 # 智途 · Windows 原生安装（无 Docker / 无 WSL / 无 Linux）
 
-面向**一台 Windows 服务器**：组件全部用 Windows 原生版，双击一个 exe 装完。
+面向**一台 Windows 服务器**：组件全部用 Windows 原生版。
+
+## 0. 三种装法，先看这一节
+
+| 装法 | 命令 | 需要什么 | 用时 | 什么时候用 |
+|---|---|---|---|---|
+| **① 纯源码装**（推荐） | `python install_from_source.py` | 一个 clone + Python 3.11–3.13 + 外网 | 25–45 分钟 | 服务器能上外网。**不要 exe、不要离线包、不要 Node** |
+| ② 安装套件 | 解压 → 右键 exe | 同 ①，加一个 24 MB 的 zip | 25–45 分钟 | 想要图形界面的进度条和日志窗口 |
+| ③ 完整离线包 | 解压 → 右键 exe | 一个 366 MB 的 zip，**全程不联网** | 3–8 分钟 | 服务器完全断网（内网隔离） |
+
+三条路跑的是**同一套 13 步逻辑**（`src/zn_setup.py`）。exe 只是给这套逻辑套了个
+tkinter 窗口 —— 所以「不想用安装程序」完全成立，`install_from_source.py` 就是
+去掉窗口的入口，它还顺手把原来打包时才做的 `make_payload.py` 也一起跑了。
+
+方式 ① 的最小流程：
+
+```bash
+git clone https://github.com/Xiucheng0623/zhitu-platform.git D:\zhitu-platform
+cd D:\zhitu-platform\platform\deploy\windows-native
+python install_from_source.py --plan      # 先看会装到哪、跑哪 13 步，不动系统
+python install_from_source.py             # 真装（管理员终端）
+```
+
+它和 exe 版本的**唯一实质差别**：没有进度条窗口，输出走控制台 + 日志文件
+（`%LOCALAPPDATA%\Zhitu\logs\install-*.log` 与 `install-report-*.txt`）。
+
+前端产物 `platform/web/dist` 已随仓库提交（536 KB），所以服务器上**不需要 Node**。
+改过前端源码后，本机 `cd platform/web && npm run build` 再提交 dist 即可。
+
+---
+
+## 0.1 五个组件
 
 | 组件 | 用什么 | 说明 |
 |---|---|---|
-| 数据库 | PostgreSQL for Windows（官方 binaries zip） | 解压 + `initdb` + 注册为 Windows 服务 |
+| 数据库 | PostgreSQL for Windows（官方 binaries zip） | 解压 + `initdb` + `pg_ctl` 直接起进程 |
 | 编排层 | Python venv + pip | 本项目自己的 FastAPI 服务，端口 8300（只监听本机） |
 | 标注引擎 | `pip install label-studio` | 官方 pip 包，Django 应用，端口 8100 |
 | 统一入口 | `caddy.exe` for Windows | 80 端口：静态前端 + `/api` 反代 |
-| 自启 | Windows 计划任务 ×3 | SYSTEM 身份、开机启动、崩溃 1 分钟内拉起 |
+| 保活 | `--watch` 守护进程 | **不注册 Windows 服务、不注册计划任务、不开机自启**（服务器常年不关，用户明确要求） |
 
 **全程不会启动 WSL、不需要 Docker、不需要嵌套虚拟化。** 服务器就是一台 Windows。
 
-**安装是在服务器本机完成的**：把 `release/` 拷进去（U 盘、共享目录、远程桌面里粘都行），
-在那台服务器的桌面上双击 exe，全程本地执行 —— **不需要远程连接、不需要开发机在线、
-不需要任何人连进来操作**。装完之后运维也只用这台服务器自己的「智途监控」看状态。
+**安装是在服务器本机完成的**：不需要远程连接、不需要开发机在线、不需要任何人连进来操作。
+方式 ① 直接 clone 到服务器上装；方式 ②③ 把 `release/` 里的 zip 拷进去解压。
+装完之后运维也只用这台服务器自己的「智途监控」看状态。
 
 ---
 

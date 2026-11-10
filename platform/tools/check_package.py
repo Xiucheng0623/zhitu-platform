@@ -83,6 +83,9 @@ REQUIRED = (
     "windows-native/make_payload.py",
     "windows-native/verify_payload.py",
     "windows-native/make_release.py",
+    # 纯源码安装入口（clone 下来一条命令装完，不需要 exe / 离线包）。
+    # 少了它，客户只能拿到一堆零散脚本，没人知道从哪一步开始。
+    "windows-native/install_from_source.py",
     "windows-native/src/zn_common.py",
     "windows-native/src/zn_setup.py",
     "windows-native/src/zn_monitor.py",
@@ -231,6 +234,9 @@ CONTENT_CHECKS = {
                                         "pg_clear_stale_lock", "pg_log_tail",
                                         "pg_cluster_version", "pg_binary_version",
                                         "pg_classify",
+                                        # 载荷目录要能被环境变量覆盖：纯源码安装时
+                                        # 载荷在 windows-native/payload，不在 src/ 下
+                                        "ZHITU_PAYLOAD_DIR",
                                         # GUI 也要落盘日志，否则出问题只能靠截图
                                         "tee_sink", "install-%s-%s.log"),
     "windows-native/src/zn_setup.py": ("STEP_SPEC", "step_list", "--no-download",
@@ -253,7 +259,18 @@ CONTENT_CHECKS = {
                                        # 口令要跨运行复用，否则重跑必犯「认证失败」
                                        "pg_super", "C.pg_verify_super",
                                        "C.pg_reset_super_password",
-                                       'tee_sink("gui"', "安装日志："),
+                                       'tee_sink("gui"', "安装日志：",
+                                       # 纯源码安装要把安装目录传进来，不能再写死
+                                       # C:\Zhitu；--plan 用来「只确认装到哪」
+                                       '"--app-dir"', '"--data-dir"'),
+    # 纯源码安装入口：clone 下来一条命令装完。这四条是它的存在理由，
+    # 少任何一条就退化成「必须打 exe」。
+    "windows-native/install_from_source.py": (
+        "ZHITU_PAYLOAD_DIR",          # 载荷位置用环境变量指，不污染 src/
+        "ZHITU_REEXEC",               # Python 版本不对要换解释器重跑
+        "make_payload.py",            # 现场组装载荷，不要求预置 payload
+        "_stub_tkinter",              # 服务器 Python 缺 tkinter 也要能装
+        "--plan"),
     "windows-native/src/zn_monitor.py": ("collect_status", "proc_state",
                                          "watchdog_state", "stop_watchdog",
                                          "main thread is not",

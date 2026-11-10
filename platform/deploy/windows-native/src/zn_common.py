@@ -98,16 +98,22 @@ def app_dir() -> Path:
 def payload_dir() -> Path:
     """载荷目录（前端 / 编排层源码 / 迁移 / 品牌补丁 / Caddy 模板）。
 
-    两种形态都要支持：
+    三种形态都要支持：
       * 单文件 exe：PyInstaller 把 `--add-data` 的东西解到 sys._MEIPASS，
         交付时**只需要一个 exe**，不用同时给一个 payload 目录；
-      * 目录形态（开发期 / 老交付物）：exe 同层的 payload/。
+      * 目录形态（开发期 / 老交付物）：exe 同层的 payload/；
+      * 纯源码安装（install_from_source.py）：载荷由 make_payload.py 现场生成，
+        位置在仓库的 windows-native/payload，不在 src/ 下面 —— 用环境变量
+        ZHITU_PAYLOAD_DIR 指过去，避免把 1 MB 源码树复制到 src/ 里污染工作树。
     """
     meipass = getattr(sys, "_MEIPASS", "")
     if meipass:
         p = Path(meipass) / "payload"
         if p.is_dir():
             return p
+    override = os.environ.get("ZHITU_PAYLOAD_DIR")
+    if override:
+        return Path(override)
     return app_dir() / "payload"
 
 

@@ -31,19 +31,33 @@
 4. 旧安装残留：C:\Zhitu\ 是否存在、sc.exe query ZhituPostgreSQL 是否还在、
    C:\Zhitu\data\pgdata 是不是完整集群（有 PG_VERSION 才算，没有就是残骸）。
 
-【第三步：找安装包 —— 先停下问我，这一步最容易白干】
-完整离线包 智途-Windows完整离线-*.zip（约 366 MB）**不在仓库里**（.gitignore 排除了 *.zip），
-仓库里只有源码。所以：
-- 这台机器上如果已经有这个 zip（搜 D:\ 和桌面），直接用；
-- 如果没有，**停下来问我包在哪**。不要在服务器上从源码重建离线包 ——
-  那需要 882 MB 的运行时暂存目录 D:\zhitu-offline-build（pgsql / py-ls / py-orch / caddy），
-  它也不在仓库里，缺了它 make_offline_release.py 直接失败，白折腾 40 分钟。
+【第三步：装 —— 直接从仓库装，不需要安装包】
+先把仓库 clone 到这台服务器（不要把工作目录开在仓库外面）：
+    git clone https://github.com/Xiucheng0623/zhitu-platform.git D:\zhitu-platform
+私有仓库，要 GitHub Token（repo 权限）。
 
-【第四步：安装】
-1. zip 必须**完整解压**（不要只解出 exe，runtime 和 payload 必须和 exe 在同一层）；
-2. 右键「智途安装程序（原生）.exe」→ 以管理员身份运行；
-3. 走完 13 步。某一步失败时**不要从头再点一遍**：程序是「失败不中断」，跑完会生成
-   install-report-<时间>.txt；直接跑第二次，已完成的步骤会自动跳过。
+然后在仓库里一条命令装完：
+    cd D:\zhitu-platform\platform\deploy\windows-native
+    python install_from_source.py --plan     ← 先看装到哪、跑哪 13 步，不动系统
+    python install_from_source.py            ← 真装（必须管理员终端）
+
+它会：现场组装 payload → 校验 Python 3.11–3.13（不在区间会自动换合适的解释器重跑）
+→ 跑 13 步。PostgreSQL（约 330 MB，EDB 源，卡住自动切 Maven 23 MB 备用源）、
+Label Studio 与平台依赖（pip 阿里云镜像）、Caddy（ghproxy）全部现场下载。
+首次 25–45 分钟，**服务器必须能上外网**。
+
+不需要：exe、离线包、runtime 目录、Node/npm（前端产物已在仓库里）、Docker、WSL。
+不要去打 make_offline_release.py / build_native.py —— 那是出「离线包」和「exe」的，
+这台机器上用不到，而且离线包所需 882 MB 暂存目录 D:\zhitu-offline-build 不在仓库里。
+只有一种情况需要它们：服务器完全断网（内网隔离）。那时停下来问我，别自己硬造。
+
+【第四步：跑的时候看什么】
+1. 13 步是「失败不中断」：一次跑完，把问题一次全拿到，跑完生成 install-report-<时间>.txt；
+2. 某一步失败**不要从头重来**：直接重跑同一条命令，已完成的步骤会自动跳过；
+3. 跑的过程中如果是在会话里执行，注意命令可能要 20 分钟以上，别因为「没输出」
+   就判定卡死 —— pip 装 Label Studio 那步本来就只有零星几行；
+4. 装完桌面/开始菜单没有图标是正常的（方式 ① 不起 GUI）。服务靠 --watch 守护进程，
+   启动脚本在安装目录里。
 
 【第五步：验收（逐条给结论，不许含糊）】
 1. 13 步结果：失败几步、跳过几步，分别是哪几步、为什么（把报告的对应段落贴出来）；
@@ -54,19 +68,26 @@
 
 【硬约束，违反就是返工】
 - 不注册任何 Windows 服务、计划任务、开机自启 —— 用户明确要求过，服务器常年不关；
-  保活交给安装程序起的 --watch 守护进程（桌面有「启动智途.bat」）。
+  保活交给安装程序起的 --watch 守护进程。
 - PostgreSQL 用 pg_ctl 直起，不要 sc create。
 - 前端生产构建必须留空 VITE_API_BASE（走同源 /api，由 Caddy 反代到 8300）；
   写死 127.0.0.1:8300 会让别人打开页面时请求自己的本机，全空态。
+  仓库里的 platform/web/dist 已经是同源构建（一份 536 KB 产物），
+  不要为了「重新构建」去服务器上装 Node。
 - 迁移里不允许出现演示数据，也不要手工往库里灌假数据。
 - 不要跑 platform/deploy/make_package.py（已废弃的 Linux 交付链）。
 - 不要为了让验收通过去改断言或注释掉检查；有问题改代码。
 
 【已知的坑（踩过，别重复）】
+- 第 02 步：Python 必须 3.11–3.13。3.14/3.15 上装 Label Studio 会因为没有预编译
+  wheel 而退化成源码编译并失败。install_from_source.py 会自动换解释器，
+  但如果这台机器三个版本都没有，它会让你先装 3.12。
 - 第 03 步「pg_ctl 起不来 / 5432 没监听」：先看 C:\Zhitu\data\pgdata\log\postgres.log 末尾。
   九成是 lock file "postmaster.pid" already exists（旧服务被强杀留下的）。新版会自动清残留锁；
   还失败就手工 Remove-Item ...\postmaster.pid -Force 后重跑。若报 incompatible，
   说明 data 目录是别的 PG 主版本建的，把 pgdata 改名留档再重装。
+- 第 06 步 pip 装 Label Studio 撞 WinError 5（拒绝访问）：杀软锁文件，不是包坏了。
+  脚本自带 3 次重试；仍失败就重跑一次，**不要删 lsvenv**。
 - 第 12 步「LS 长期凭证」必须成功，否则标完了平台数字不动。
 - 有 HTTP_PROXY 时，脚本访问 127.0.0.1 要绕开代理，否则收到 502
   「upstream connect failed」，看起来像服务没起来。
