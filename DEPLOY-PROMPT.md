@@ -1,18 +1,21 @@
 # 部署提示词（复制给新机器上的 WorkBuddy）
 
-> 用法：在**clone 出来的仓库根目录**下新建任务，把下面代码块整段粘贴进去。
-> 只在新机器第一次部署时需要。后续继续开发直接说「读记忆，接着干」。
+> 用法：先把仓库 clone 下来，**WorkBuddy 的工作目录必须是仓库根**（记忆在
+> `<工作目录>/.workbuddy/memory/`，开在上层目录读不到），然后在仓库根新建任务，
+> 把下面代码块整段粘贴进去。只在新机器第一次部署时需要；后续继续开发直接说「读记忆，接着干」。
 
 ```text
 你是「智途数据标注协作平台」的接手者，这台机器上没有历史对话，全部上下文在这个仓库里。
 
 【第一步：先读，别猜，别动手】
-按顺序读这四份，读完用你自己的话复述要点（现状 / 硬约束 / 已知坑 / 下一步），
+先确认当前工作目录就是仓库根（能看到 platform/ 和 .workbuddy/），不对就先说出来。
+然后按顺序读这四份，读完用你自己的话复述要点（现状 / 硬约束 / 已知坑 / 下一步），
 等我确认后再往下做：
 1. HANDOFF.md                              ← 现在到哪一步、验过什么、明确标注的未验证项
 2. .workbuddy/memory/MEMORY.md             ← 硬决策与长期约定（最关键）
-3. .workbuddy/memory/2026-11-10.md         ← 最近一天：注册链路、前端同源构建、pg 起不来的坑
-4. MIGRATION.md + platform/deploy/windows-native/README.md  ← 环境要求、出包流程、13 步细节
+3. .workbuddy/memory/2026-11-10.md         ← 最近一天：注册链路、同源构建、pg 起不来的坑、
+                                              以及「交付改成 clone 源码自装」这个决定
+4. MIGRATION.md 第五节 + platform/deploy/windows-native/README.md  ← 源码装流程、13 步细节
 不要跳过 1 和 2 直接开干：里面有五条「已经拍过板、不要再翻案」的决策，
 以及一份明确的「未验证清单」——不要把我没验过的事说成「应该没问题」。
 
@@ -24,11 +27,14 @@
 - 禁止假装成功：接口没实现就说没实现，测试没跑就说没跑，不要弹一个「已完成」了事。
 
 【第二步：摸现场，只读不动】
-只读确认并汇报（不要执行任何安装、不要改系统设置）：
-1. Windows 版本、是否管理员会话、内存与磁盘余量；
-2. python --version；python -c "import tkinter" 是否有输出；node -v 有没有；
-3. 80 / 8300 / 8080 / 8100 / 5432 各被谁占着（netstat -ano + tasklist /FI "PID eq <pid>"）；
-4. 旧安装残留：C:\Zhitu\ 是否存在、sc.exe query ZhituPostgreSQL 是否还在、
+只读确认并汇报（不要执行安装、不要改系统设置）：
+1. Windows 版本与 build、当前会话是否管理员、内存与 C/D 盘余量；
+2. Python：`py -0p` 列出所有已装版本，有没有落在 3.11–3.13 的；
+   一个都没有的话**立刻停下来告诉我** —— 源码装必须要有一个（这是去掉 exe 的代价）；
+3. 网络：能不能连 GitHub（要 clone）、get.enterprisedb.com、repo1.maven.org、
+   mirrors.aliyun.com、ghproxy.net。四个下载源里 PG 那两个至少要通一个；
+4. 端口 80 / 8300 / 8100 / 5432 各被谁占着（netstat -ano + tasklist /FI "PID eq <pid>"）；
+5. 旧安装残留：C:\Zhitu\ 是否存在、sc.exe query ZhituPostgreSQL 是否还在、
    C:\Zhitu\data\pgdata 是不是完整集群（有 PG_VERSION 才算，没有就是残骸）。
 
 【第三步：装 —— 直接从仓库装，不需要安装包】
@@ -36,12 +42,15 @@
     git clone https://github.com/Xiucheng0623/zhitu-platform.git D:\zhitu-platform
 私有仓库，要 GitHub Token（repo 权限）。
 
-然后在仓库里一条命令装完：
+然后在仓库里一条命令装完（**必须在管理员终端里**，否则只能跑到 --plan 就停）：
     cd D:\zhitu-platform\platform\deploy\windows-native
     python install_from_source.py --plan     ← 先看装到哪、跑哪 13 步，不动系统
-    python install_from_source.py            ← 真装（必须管理员终端）
+    python install_from_source.py            ← 真装
 
-它会：现场组装 payload → 校验 Python 3.11–3.13（不在区间会自动换合适的解释器重跑）
+--plan 跑完先给我看它的输出（代码目录 / 数据目录 / 13 步），我确认后再真装。
+要换盘就加 --dir D:\Zhitu（代码进 <dir>\app，数据进 <dir>\data）。
+
+它会：现场组装载荷 → 校验 Python 3.11–3.13（不在区间会自动换合适的解释器重跑）
 → 跑 13 步。PostgreSQL（约 330 MB，EDB 源，卡住自动切 Maven 23 MB 备用源）、
 Label Studio 与平台依赖（pip 阿里云镜像）、Caddy（ghproxy）全部现场下载。
 首次 25–45 分钟，**服务器必须能上外网**。
@@ -50,14 +59,16 @@ Label Studio 与平台依赖（pip 阿里云镜像）、Caddy（ghproxy）全部
 不要去打 make_offline_release.py / build_native.py —— 那是出「离线包」和「exe」的，
 这台机器上用不到，而且离线包所需 882 MB 暂存目录 D:\zhitu-offline-build 不在仓库里。
 只有一种情况需要它们：服务器完全断网（内网隔离）。那时停下来问我，别自己硬造。
+也不要「为了稳妥」把仓库里已提交的 dist 删掉重新 build —— 服务器上没 Node，
+而且那份产物是同源构建过的，重建反而容易把 127.0.0.1 烧进去。
 
 【第四步：跑的时候看什么】
 1. 13 步是「失败不中断」：一次跑完，把问题一次全拿到，跑完生成 install-report-<时间>.txt；
 2. 某一步失败**不要从头重来**：直接重跑同一条命令，已完成的步骤会自动跳过；
-3. 跑的过程中如果是在会话里执行，注意命令可能要 20 分钟以上，别因为「没输出」
-   就判定卡死 —— pip 装 Label Studio 那步本来就只有零星几行；
-4. 装完桌面/开始菜单没有图标是正常的（方式 ① 不起 GUI）。服务靠 --watch 守护进程，
-   启动脚本在安装目录里。
+3. 这一跑可能要 20 分钟以上。别因为「没输出」就判定卡死 —— pip 装 Label Studio
+   那步本来就只有零星几行。判断死活看进程和日志，不要看输出松不热闹；
+4. 装完桌面没有图标、开始菜单没有条目都是**正常的**：这条路不起 GUI，也不注册任何
+   服务/任务/自启。平台靠 --watch 守护进程保活，启停脚本在安装目录里。
 
 【第五步：验收（逐条给结论，不许含糊）】
 1. 13 步结果：失败几步、跳过几步，分别是哪几步、为什么（把报告的对应段落贴出来）；
@@ -101,6 +112,7 @@ Label Studio 与平台依赖（pip 阿里云镜像）、Caddy（ghproxy）全部
 ## 常见追加问法
 
 - 装完想改代码：「读记忆，接着干。先跑 `python platform\tools\check_package.py --source` 确认基线。」
-- 只想重新出包：「按 MIGRATION.md 第五节走一遍，出完把 SHA256 和文件数报给我。」
+- 改了前端源码：「在 platform/web 里 npm run build，把 dist 一起提交」——**服务器上不构建前端**。
+- 只想重新出包（只有在要交付给断网机器时才需要）：「按 MIGRATION.md 第六节走一遍，出完把 SHA256 和文件数报给我。」
 - 出问题要人看：「把 install-report-*.txt 全文贴出来，不要截断。」
 - 业务闭环验收：「建个项目 → 绑 Label Studio 项目 → 建批次分配 → 标注员登录看到数据 → 标一条 → 平台数字 +1，把每一步的结果贴出来。」
