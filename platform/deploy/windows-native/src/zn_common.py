@@ -83,6 +83,15 @@ PG_ALT_URL = ("https://repo1.maven.org/maven2/io/zonky/test/postgres/"
 CADDY_ZIP_URL = ("https://ghproxy.net/https://github.com/caddyserver/caddy/"
                  "releases/download/v2.8.4/caddy_2.8.4_windows_amd64.zip")
 PY_DOWNLOAD_HINT = "https://www.python.org/ftp/python/3.12.8/python-3.12.8-amd64.exe"
+# 同一个地址，安装程序会自己下下来静默装 —— 服务器上 winget 经常根本没有
+# （Server 2016/2019 默认没装 App Installer），只给一行人话让运维自己装，
+# 等于把「能不能装」推给现场。能自动做的就别让人做。
+PY_INSTALLER_URL = PY_DOWNLOAD_HINT
+
+# 刻意**不**把 WorkBuddy / 其它工具自带的 Python 当候选：
+# 那种解释器的路径跟着宿主软件版本走（.../versions/3.13.12/python.exe），
+# 宿主一升级，venv 里的 pyvenv.cfg 就指向空路径，整个平台的依赖全废。
+# 生产环境的 venv 必须建在系统级 Python 上。
 
 
 # ---------------------------------------------------------------------------
@@ -619,6 +628,36 @@ def find_python(lo: Tuple[int, int] = (3, 11), hi: Tuple[int, int] = (3, 13)
         if not best[0] or rank < best_rank:
             best, best_rank = (c, ver), rank
     return best
+
+
+def python_install_official(log: Callable[..., None]) -> Tuple[bool, str]:
+    """下官方安装包静默装一个 Python 3.12（装完返回是否找到可用的）。
+
+    为什么不是只有 winget：Windows Server 2016/2019 默认没有 App Installer，
+    `winget.exe` 直接不存在；云主机的精简镜像也常常被裁掉。原来那一步的判断是
+    「winget 装不上 → 让用户自己去下」，等于把能不能装推给现场。
+    官方 exe 支持 `/quiet InstallAllUsers=1 PrependPath=1`，一条命令搞定，
+    比 winget 更快也更可预期（25 MB，且不需要任何商店组件）。
+    """
+    dst = Path(tempfile.gettempdir()) / "python-3.12.8-amd64.exe"
+    log("下载 Python 3.12 官方安装包（约 25 MB）…")
+    ok, msg = download(PY_INSTALLER_URL, dst, log, min_bytes=20 * 1048576,
+                       timeout=120.0)
+    if not ok:
+        return False, "下载 Python 安装包失败：%s" % msg
+    log("静默安装（InstallAllUsers=1 PrependPath=1，约 1-2 分钟）…")
+    rc, out = run([str(dst), "/quiet", "InstallAllUsers=1", "PrependPath=1",
+                   "Include_test=0", "Include_launcher=1", "Include_pip=1"],
+                  timeout=900)
+    # Python 的安装程序会先起一个子进程再退出，rc=0 时也可能还在装，
+    # 所以不能装完就立刻 find_python —— 要给它一点时间落地。
+    for i in range(20):
+        py, ver = find_python((3, 11), (3, 13))
+        if py:
+            return True, "已静默安装 Python %s（%s）" % (ver, py)
+        time.sleep(3)
+    return False, ("静默安装没成功（rc=%s）：%s"
+                   % (rc, (out or "").strip()[-300:] or "安装包没有给出输出"))
 
 
 def venv_python(venv_dir: Path) -> Path:

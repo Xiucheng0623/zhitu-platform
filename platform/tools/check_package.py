@@ -235,8 +235,11 @@ CONTENT_CHECKS = {
                                         "pg_cluster_version", "pg_binary_version",
                                         "pg_classify",
                                         # 载荷目录要能被环境变量覆盖：纯源码安装时
-                                        # 载荷在 windows-native/payload，不在 src/ 下
+                                        # 载荷在 windows-native/packages 之外
                                         "ZHITU_PAYLOAD_DIR",
+                                        # 服务器上没有 Python 时要能自己装：
+                                        # winget 在 Server 上基本不存在，必须走官方 exe
+                                        "python_install_official", "PY_INSTALLER_URL",
                                         # GUI 也要落盘日志，否则出问题只能靠截图
                                         "tee_sink", "install-%s-%s.log"),
     "windows-native/src/zn_setup.py": ("STEP_SPEC", "step_list", "--no-download",

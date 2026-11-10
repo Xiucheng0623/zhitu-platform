@@ -361,9 +361,19 @@ class Installer:
         self.py, self.py_ver = C.find_python((3, 11), (3, 13))
         if self.py:
             return True, "已通过 winget 安装 Python %s" % self.py_ver
+
+        # winget 在 Windows Server 上十有八九不存在（没有 App Installer）。
+        # 直接下官方安装包静默装，别把「装 Python」推给现场运维。
+        self.log("winget 不可用，改用官方安装包静默安装 3.12 …")
+        ok, msg = C.python_install_official(self.log)
+        self.log("  " + msg)
+        if ok:
+            self.py, self.py_ver = C.find_python((3, 11), (3, 13))
+            return True, msg
         return False, ("这台机器没有可用的 Python 3.11–3.13，自动安装也没成功。\n"
-                       "请手动安装后重跑：%s\n（安装时务必勾选 Add python.exe to PATH）"
-                       % C.PY_DOWNLOAD_HINT)
+                       "%s\n请手动安装后重跑：%s\n"
+                       "（安装时务必勾选 Add python.exe to PATH）"
+                       % (msg, C.PY_DOWNLOAD_HINT))
 
     # -- 03 PostgreSQL ----------------------------------------------------
     def _fetch_zip(self, url: str, name: str, min_mb: int) -> Tuple[bool, str]:
