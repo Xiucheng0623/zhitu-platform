@@ -10,13 +10,12 @@
 
 ```text
 你好，接一个已经做到一半的项目。这台机器上没有历史对话，也没有任何本地文件，
-全部上下文在一个 GitHub 私有仓库里。
+全部上下文在一个 GitHub 公开仓库里，不用任何账号或 Token。
 
 第一件事，只做这一件，别做别的：
 1. 在当前工作目录下把仓库 clone 下来，目录名就叫 zhitu-platform：
      git clone https://github.com/Xiucheng0623/zhitu-platform.git zhitu-platform
-   （私有仓库，需要 GitHub Token / 已登录的 gh。如果你自己或宿主软件自带 git、python，
-     直接用那个就行，这台机器不用先装环境。）
+   （如果你自己或宿主软件自带 git、python，直接用那个就行，这台机器不用先装环境。）
 2. clone 完立刻确认这三样都在，把 ls 的输出贴给我：
    - zhitu-platform\.workbuddy\memory\        应该能看到 7 个 .md
    - zhitu-platform\HANDOFF.md
