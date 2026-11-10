@@ -77,3 +77,4 @@ py-orch / caddy，约 882 MB），换机器先改脚本里的 `OFFLINE` 常量�
 项目记忆随仓库走（`.workbuddy/memory/`），在新机器上新建任务会自动带上历史约定。
 
 新机器第一次部署，直接把 [`DEPLOY-PROMPT.md`](DEPLOY-PROMPT.md) 里的提示词整段粘给 WorkBuddy。
+接到这个仓库但**没有历史对话**的话，先看 [`HANDOFF.md`](HANDOFF.md)（当前到哪一步、验过什么、下一步做什么）。
