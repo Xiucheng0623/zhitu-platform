@@ -73,5 +73,5 @@ py-orch / caddy，约 882 MB），换机器先改脚本里的 `OFFLINE` 常量�
 
 ## 换一台机器继续开发
 
-见 [`MIGRATION.md`](MIGRATION.md)（在 `_handoff/` 打包时生成，未入库时可直接看
-`platform/README.md` 与 `platform/deploy/windows-native/README.md`）。
+见 [`MIGRATION.md`](MIGRATION.md)：clone 代码、环境要求、出包流程、离线仓库包怎么用。
+项目记忆随仓库走（`.workbuddy/memory/`），在新机器上新建任务会自动带上历史约定。
