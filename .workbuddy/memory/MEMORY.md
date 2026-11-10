@@ -70,6 +70,10 @@
   ④判库先看端口归属（`pg_owns_port`），别把别人的 5432 当自己。
 - 口令自愈：第 03 步生成后立刻 `save_config({"pg_super"})`（否则重跑丢口令→`password authentication failed`）；
   起服务后 `pg_verify_super`，失败走 `pg_reset_super_password`（临时 HBA_TRUST，`finally` 必须原样写回）。
+- **PG 起不来必须自己说清原因**（11-10 真机踩到）：`pg_start_local` 起之前清死进程残留的 `postmaster.pid`
+  （PID 活着不动），失败后 `pg_log_tail` 读日志末尾 + `pg_classify` 分五类（残留锁/端口占用/版本不符/权限/无日志），
+  残留锁自动重试一次；日志为空时补跑 `pg_ctl status` 拿关键措辞；`pg_ctl` 退出码非 0 就 3 秒内放弃。
+  **顺序铁律：先删遗留服务（并等端口真关闭）再判端口**，反了必然撞 lock file。
 - CLIXML：PowerShell 错误流是 `<Objs>` 且带 `_x000D__x000A_`，`ps()` 里脚本统一包 try/catch + `unwrap_clixml()`。
 - **前端生产构建必须留空 `VITE_API_BASE`**（`.env.production`）。.env.local 的 `127.0.0.1:8300` 会被烧进 JS，
   换台电脑打开就请求访问者自己的本机 → 全空态。`http.ts` 的 `isBackendConfigured()` 恒 true、走同源 `/api`
@@ -101,3 +105,17 @@
 真机：80 端口接管、LS 首次迁移、Caddy validate、守护进程单实例。
 其它：`013_ux_enhance.sql` 未在生产 `forge` 库跑；测试库 4 个批次未接入 LS；
 多客户共用实例时 `client_viewer` 仍能读全部项目（RLS 待收窄）；`backup.sh`/`restore.sh` 未真实恢复过。
+
+## 十、代码仓库与换机（11-10 建）
+- 仓库：`https://github.com/Xiucheng0623/zhitu-platform`（**私有**，账号 Xiucheng0623）。
+  2026-11-10 才第一次建独立仓库，**之前没有任何版本历史**（旧的 `git rev-parse --show-toplevel`
+  指到 `C:/Users/G`，本项目 0 文件被跟踪）。
+- 交付物（366MB 离线包、两个 exe、node_modules、web/dist、payload）**不入库**，见 `.gitignore`；
+  `.gitattributes` 写 `* -text` 关闭行尾转换（逐字节自检依赖原始字节）。
+- `.workbuddy/memory/` 随仓库走：clone 下来新 WorkBuddy 自动读到同一套记忆。
+  前提是**工作目录必须是 clone 出来的仓库根**（记忆路径 `<workspace>/.workbuddy/memory/`）。
+- 新机器开工看：`MIGRATION.md`（环境/出包）、`DEPLOY-PROMPT.md`（给新会话的自包含部署提示词）、
+  `HANDOFF.md`（当前状态交接）。
+- 网络事实：这台机器 **GitHub API 直连通、git 的 https 端点常被阻断**（502 / 443 超时）。
+  push 失败时用 `gh api --method PUT /repos/.../contents/<path> --input <json>` 写文件；
+  本地与远端会因此历史分叉，网络恢复后 `git fetch && git reset --hard origin/main` 对齐。
